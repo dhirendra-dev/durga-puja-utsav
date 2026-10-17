@@ -80,6 +80,10 @@ The project is configured for Vercel. Import the GitHub repository into Vercel a
 
 No API keys or environment variables are required. The Vercel rewrite configuration supports client-side routes.
 
+### GitHub Pages
+
+GitHub Pages is deployed from the `dist/` artifact by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). In the repository’s **Settings → Pages**, set the build and deployment source to **GitHub Actions**. The workflow builds with Vite’s `github-pages` mode so scripts, styles, and public images resolve beneath `/durga-puja-utsav/`. The standard `npm run build` remains rooted at `/` for Vercel and local preview.
+
 ## Project structure
 
 ```text

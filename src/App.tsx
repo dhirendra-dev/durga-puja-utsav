@@ -21,6 +21,8 @@ const navItems = [
   ['Community gallery', 'community-gallery'],
 ] as const
 
+const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+
 const forms = [
   ['Shailaputri', 'Grounded strength and new beginnings', '🌺'],
   ['Brahmacharini', 'Devotion, discipline and perseverance', '🪷'],
@@ -425,7 +427,7 @@ function App() {
             aria-label="AI-generated devotional illustration inspired by Maa Durga"
             style={{ '--parallax-x': `${heroPointer.x * -9}px`, '--parallax-y': `${heroPointer.y * -7}px` } as React.CSSProperties}
           >
-            <img src="/durga-puja-hero.png" alt="" />
+            <img src={publicAsset('durga-puja-hero.png')} alt="" />
           </div>
           <div className="hero-halo" aria-hidden="true"><span /><span /><span /></div>
           <div className="hero-vignette" />
@@ -483,7 +485,7 @@ function App() {
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE DIVINE STORY" : "দেবীর কাহিনি"} title={language === 'en' ? "A story of courage, not fear." : "সাহস ও ন্যায়ের কাহিনি।"} copy={language === 'en' ? "At the heart of Durga Puja is a powerful story about restoring balance when arrogance and injustice threaten the world." : "অহংকার ও অন্যায় যখন ভারসাম্য নষ্ট করে, তখন ন্যায় ও শক্তির পুনঃপ্রতিষ্ঠার কথা মনে করিয়ে দেয় দুর্গাপুজোর কাহিনি।"} /></Reveal>
           <div className="story-grid">
             <Reveal className="story-image-card">
-              <div className="story-image"><img src="/durga-puja-hero.png" alt="Devotional artwork depicting Maa Durga" /></div>
+              <div className="story-image"><img src={publicAsset('durga-puja-hero.png')} alt="Devotional artwork depicting Maa Durga" /></div>
               <div className="image-caption"><span>শক্তি</span><div><b>Shakti — the power to protect</b><small>Strength guided by compassion</small></div></div>
             </Reveal>
             <Reveal className="story-copy-card">
@@ -548,7 +550,7 @@ function App() {
         </section>
 
         <section className="gallery-band" id="gallery">
-          <div className="gallery-image"><img src="/durga-puja-hero.png" alt="Illuminated festive pandal and devotional Durga Puja scene" /></div>
+          <div className="gallery-image"><img src={publicAsset('durga-puja-hero.png')} alt="Illuminated festive pandal and devotional Durga Puja scene" /></div>
           <div className="gallery-overlay" />
           <div className="gallery-content">
             <Reveal><span className="eyebrow"><Music2 size={14} /> A FEAST FOR THE SENSES</span><h2>Light, rhythm,<br /><em>and togetherness.</em></h2><p>From the sound of the dhaak to intricate pandal art, every detail becomes part of a shared memory.</p><a href="#traditions" className="button button-primary">Discover the traditions <ArrowRight size={17} /></a></Reveal>
@@ -616,10 +618,10 @@ function App() {
           </div>
           <div className="culture-gallery-grid">
             {[
-              { category: 'art', num: '01', image: '/gallery/singhee-park-puja.jpg', alt: 'Durga Puja idol and ornate pandal at Singhee Park in Kolkata', title: language === 'en' ? 'A home for the Goddess' : 'দেবীর আবাস', text: language === 'en' ? 'An intricate pandal frames a richly detailed Durga Puja tableau.' : 'সুন্দরভাবে সাজানো প্যান্ডেলে দেবী দুর্গার অপরূপ প্রতিমা।', author: 'Pramanikshreya', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Festival_-_Singhee_Park_Durga_Puja_Dover_Lane_Kolkata_October_2023.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-              { category: 'art', num: '02', image: '/gallery/pandal-architecture.jpg', alt: 'A sculptural, cream-and-red Durga Puja pandal entrance in Kolkata', title: language === 'en' ? 'Pandal as public art' : 'প্যান্ডেল যখন শিল্প', text: language === 'en' ? 'Temporary architecture turns craft and imagination into a shared landmark.' : 'কারুশিল্প ও কল্পনায় অস্থায়ী স্থাপনা হয়ে ওঠে সবার আকর্ষণ।', author: 'VedSutra', source: 'https://commons.wikimedia.org/wiki/File:Colorful_Durga_Puja_pandal_decorations_from_Kolkata.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-              { category: 'ritual', num: '03', image: '/gallery/puja-pandal.jpg', alt: 'A brightly illuminated Durga Puja pandal with the Goddess and devotees', title: language === 'en' ? 'A moment of devotion' : 'ভক্তির এক মুহূর্ত', text: language === 'en' ? 'Worship and gathering take place in spaces made beautiful by local hands.' : 'স্থানীয় মানুষের সৃষ্ট সুন্দর পরিসরে একত্রিত হন ভক্তরা।', author: 'Lkrath', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Pandal.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' },
-              { category: 'community', num: '04', image: '/gallery/festival-lights.jpg', alt: 'Colorful illuminated street decorations during Durga Puja in Kolkata', title: language === 'en' ? 'The city comes alive' : 'আলোয় জেগে ওঠে শহর', text: language === 'en' ? 'Festival lights transform familiar streets into places of wonder.' : 'উৎসবের আলোয় চেনা পথও হয়ে ওঠে বিস্ময়ের।', author: 'Kumar83', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Lights.jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' },
+              { category: 'art', num: '01', image: publicAsset('gallery/singhee-park-puja.jpg'), alt: 'Durga Puja idol and ornate pandal at Singhee Park in Kolkata', title: language === 'en' ? 'A home for the Goddess' : 'দেবীর আবাস', text: language === 'en' ? 'An intricate pandal frames a richly detailed Durga Puja tableau.' : 'সুন্দরভাবে সাজানো প্যান্ডেলে দেবী দুর্গার অপরূপ প্রতিমা।', author: 'Pramanikshreya', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Festival_-_Singhee_Park_Durga_Puja_Dover_Lane_Kolkata_October_2023.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+              { category: 'art', num: '02', image: publicAsset('gallery/pandal-architecture.jpg'), alt: 'A sculptural, cream-and-red Durga Puja pandal entrance in Kolkata', title: language === 'en' ? 'Pandal as public art' : 'প্যান্ডেল যখন শিল্প', text: language === 'en' ? 'Temporary architecture turns craft and imagination into a shared landmark.' : 'কারুশিল্প ও কল্পনায় অস্থায়ী স্থাপনা হয়ে ওঠে সবার আকর্ষণ।', author: 'VedSutra', source: 'https://commons.wikimedia.org/wiki/File:Colorful_Durga_Puja_pandal_decorations_from_Kolkata.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+              { category: 'ritual', num: '03', image: publicAsset('gallery/puja-pandal.jpg'), alt: 'A brightly illuminated Durga Puja pandal with the Goddess and devotees', title: language === 'en' ? 'A moment of devotion' : 'ভক্তির এক মুহূর্ত', text: language === 'en' ? 'Worship and gathering take place in spaces made beautiful by local hands.' : 'স্থানীয় মানুষের সৃষ্ট সুন্দর পরিসরে একত্রিত হন ভক্তরা।', author: 'Lkrath', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Pandal.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+              { category: 'community', num: '04', image: publicAsset('gallery/festival-lights.jpg'), alt: 'Colorful illuminated street decorations during Durga Puja in Kolkata', title: language === 'en' ? 'The city comes alive' : 'আলোয় জেগে ওঠে শহর', text: language === 'en' ? 'Festival lights transform familiar streets into places of wonder.' : 'উৎসবের আলোয় চেনা পথও হয়ে ওঠে বিস্ময়ের।', author: 'Kumar83', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Lights.jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' },
             ].filter(item => galleryFilter === 'all' || item.category === galleryFilter).map(item => <Reveal key={item.num} className="culture-tile">
               <div className="culture-tile-image"><img src={item.image} alt={item.alt} loading="lazy" /><span>{item.num}</span><b>{item.category === 'art' ? 'ART & PANDALS' : item.category.toUpperCase()}</b></div>
               <div className="culture-tile-copy"><small>{item.category.toUpperCase()}</small><h3>{item.title}</h3><p>{item.text}</p><p className="culture-photo-credit">Photo: <a href={item.source} target="_blank" rel="noreferrer">{item.author}</a> · <a href={item.licenseUrl} target="_blank" rel="noreferrer">{item.license}</a></p></div>
