@@ -1,67 +1,103 @@
-# Durga Puja Utsav — The Light Within
+# Durga Puja Utsav
 
-A responsive, animated cultural-awareness website about Durga Puja, built with React, TypeScript, Vite, Framer Motion and custom CSS. It is designed to be pushed to GitHub and deployed on Vercel.
+A responsive, bilingual cultural experience celebrating Durga Puja and the many traditions of the festive season. Built with React, TypeScript, Vite, Framer Motion, and custom CSS.
 
-## Highlights
+The site pairs cultural storytelling with practical, interactive tools—including a community contribution form and a locally managed gallery review panel.
 
-- Cinematic devotional hero with custom artwork
-- Responsive mobile navigation
-- Scroll reveal and hover animations, floating petals, glowing diyas and ambient effects
-- Story of Maa Durga and Mahishasura
-- Why Durga Puja is celebrated
-- Five days of Puja and commonly observed rituals
-- Navadurga learning cards
-- Regional celebration cards and culture gallery
-- Interactive knowledge quiz with score feedback
-- Accessibility-minded reduced-motion support
-- SEO metadata and Vercel SPA rewrite
+## What’s inside
 
-## Run locally
+- A devotional landing page with custom illustrative artwork and responsive navigation
+- Stories, rituals, regional traditions, and Navadurga learning cards
+- An interactive knowledge quiz
+- A cultural gallery with category filters
+- Festival planning tools, an events explorer, and a pandal map
+- A Puja journal for saving personal memories
+- A community contribution form with image attachments and a local review workflow
+- English and Bengali language options, light/dark appearance, and reduced-motion support
 
-Requirements: Node.js 18+ and npm.
+## Requirements
 
-```bash
-npm install
-npm run dev
-```
+- Node.js 18 or newer
+- npm (included with Node.js)
 
-Open the local URL printed by Vite.
+## Run the site locally
 
-## Build
+1. Clone the repository and enter the project directory:
+
+   ```bash
+   git clone https://github.com/dhirendra-dev/durga-puja-utsav.git
+   cd durga-puja-utsav
+   ```
+
+2. Install the dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Start the Vite development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open the local address printed in the terminal—usually <http://localhost:5173>—in your browser.
+
+Vite supports hot reload, so changes to the source files appear as you work. To access the development server from another device on the same network, use the network address Vite prints in the terminal.
+
+## View and use the Community Gallery
+
+1. Open the site in your browser.
+2. Choose **Community Gallery** from the navigation, or scroll to the Community Gallery section.
+3. Submit a story, artwork, poem, photograph, tradition, or community initiative using the contribution form. A name and title are required; an image is optional and must be under 600 KB.
+4. New submissions appear in the local review panel as pending. Approve a contribution there to display it in the gallery; you can also feature or remove submissions from the review panel.
+5. Use the gallery search and category filter to find approved entries.
+
+### Important: local-only data
+
+This project currently has no server, database, account system, or shared moderation service. Contributions, approvals, favorites, journal entries, and other saved preferences are stored in the browser’s local storage on the device where they were created. They are not automatically uploaded or shared with other visitors, and clearing browser data may remove them. The gallery is therefore a local demonstration of a submission and review workflow—not a live, cross-user community feed.
+
+## Production build
+
+Create and locally preview an optimized production build:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Deploy on GitHub + Vercel
+The build output is written to `dist/`. The `npm run build` command also runs the TypeScript project checks before building the site.
 
-1. Create a new GitHub repository, for example `durga-puja-utsav`.
-2. Extract this ZIP and upload the **contents** of the folder (not the ZIP file itself) to the repository.
-3. In Vercel, choose **Add New → Project**, import the repository, and keep the detected Vite settings:
-   - Build command: `npm run build`
-   - Output directory: `dist`
-   - Install command: `npm install`
-4. Click **Deploy**. No API keys or environment variables are required.
+## Deploy
 
-## Content note
+The project is configured for Vercel. Import the GitHub repository into Vercel and use these settings (normally detected automatically):
 
-The site is an educational introduction, not a definitive account of every regional tradition. Dates, customs, rituals and interpretations can vary by community and calendar. Please review and adapt the copy with local cultural knowledge before publishing. The included hero artwork is an AI-generated devotional illustration, not a documentary photograph or a live animation of a physical idol.
+| Setting | Value |
+| --- | --- |
+| Install command | `npm install` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+
+No API keys or environment variables are required. The Vercel rewrite configuration supports client-side routes.
 
 ## Project structure
 
 ```text
-durga-puja-utsav/
+.
 ├── public/
 │   └── durga-puja-hero.png
 ├── src/
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── styles.css
+│   ├── App.tsx          # Page content and interactive features
+│   ├── main.tsx         # React application entry point
+│   └── styles.css       # Responsive styles and visual design
 ├── index.html
 ├── package.json
-├── tsconfig.app.json
 ├── tsconfig.json
+├── tsconfig.app.json
 ├── vercel.json
 └── README.md
 ```
+
+## Content and cultural care
+
+This site is an educational introduction, not a definitive account of every regional tradition. Practices and interpretations vary across communities and families. Please review and adapt the content with local cultural knowledge before publishing. Ask permission before sharing someone else’s story or image, and before photographing worshippers or sacred moments. The hero artwork is an AI-generated illustration, not documentary photography of a specific pandal or ritual.
