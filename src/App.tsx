@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowDown, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, Copy,
   CircleHelp, Flame, Flower2, Globe2, Heart, Menu, Moon, Music2,
-  Sparkles, Sun, X, Zap, MapPin, Route, Plus, Trash2, ExternalLink, BookHeart, ImagePlus, Download, PenLine, Send, ShieldCheck, MessageSquareText, ThumbsUp, Clock3, UserRound, Search, Printer
+  Sparkles, Sun, X, Zap, MapPin, Route, Plus, Trash2, ExternalLink, BookHeart, ImagePlus, Download, PenLine, Send, ShieldCheck, MessageSquareText, ThumbsUp, Clock3, UserRound, Search, Printer, type LucideIcon
 } from 'lucide-react'
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   ['Navadurga', 'navadurga'],
   ['Explore India', 'india'],
   ['Knowledge quiz', 'quiz'],
+  ['Light of Shakti', 'formation-game'],
   ['Festival calendar', 'calendar'],
   ['Celebrate kindly', 'kindness'],
   ['Events explorer', 'events-explorer'],
@@ -57,6 +58,14 @@ const quiz = [
   { q: 'Which sound is strongly associated with many Bengali Durga Puja celebrations?', options: ['Dhaak drumming', 'Bagpipes', 'Alpine horns'], answer: 0, explain: 'The deep, celebratory rhythm of the dhaak is an iconic part of many Bengali Puja celebrations.' },
 ]
 
+const formationQualities: { id: string; name: string; nameBn: string; note: string; noteBn: string; icon: LucideIcon }[] = [
+  { id: 'courage', name: 'Courage', nameBn: 'সাহস', note: 'Meet difficulty with resolve.', noteBn: 'দৃঢ়তার সঙ্গে কঠিনতার মুখোমুখি হওয়া।', icon: ShieldCheck },
+  { id: 'wisdom', name: 'Wisdom', nameBn: 'প্রজ্ঞা', note: 'See clearly; choose with care.', noteBn: 'স্পষ্টভাবে দেখা, বিবেচনা করে বেছে নেওয়া।', icon: Sun },
+  { id: 'compassion', name: 'Compassion', nameBn: 'মমতা', note: 'Let strength protect and care.', noteBn: 'শক্তিকে সুরক্ষা ও যত্নে কাজে লাগানো।', icon: Heart },
+  { id: 'unity', name: 'Unity', nameBn: 'ঐক্য', note: 'Many lights become one radiance.', noteBn: 'অনেক আলো একসঙ্গে উজ্জ্বল হয়ে ওঠে।', icon: Flower2 },
+  { id: 'hope', name: 'Hope', nameBn: 'আশা', note: 'Keep a light for the way ahead.', noteBn: 'সামনের পথের জন্য আলো জ্বালিয়ে রাখা।', icon: Sparkles },
+]
+
 function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const reduce = useReducedMotion()
   return (
@@ -86,6 +95,9 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [lightMode, setLightMode] = useState(false)
   const [language, setLanguage] = useState<'en' | 'bn'>('en')
+  const [formationStarted, setFormationStarted] = useState(false)
+  const [gatheredQualities, setGatheredQualities] = useState<string[]>([])
+  const formationComplete = gatheredQualities.length === formationQualities.length
   
   const isBengali = language === 'bn';const [galleryFilter, setGalleryFilter] = useState('all')
   const [festivalDate, setFestivalDate] = useState('2027-10-08')
@@ -378,6 +390,15 @@ function App() {
     setQuizIndex(0); setSelected(null); setScore(0); setFinished(false)
   }
 
+  const gatherQuality = (id: string) => {
+    if (!formationStarted) return
+    setGatheredQualities((current) => current.includes(id) ? current : [...current, id])
+  }
+  const resetFormation = () => {
+    setFormationStarted(false)
+    setGatheredQualities([])
+  }
+
   return (
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
       <div className="ambient ambient-one" />
@@ -389,7 +410,7 @@ function App() {
         </a>
         <nav id="site-navigation" className={`desktop-nav ${menuOpen ? 'nav-open' : ''}`} aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}>
           {navItems.map(([label, id], index) => {
-            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'পুজোর পরিকল্পনা', 'উৎসবের নির্দেশিকা', 'আমার ভ্রমণসূচি', 'উৎসবের অনুষ্ঠান', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
+            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'শক্তির আলোকযাত্রা', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'অনুষ্ঠান খোঁজ', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
             return <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{language === 'en' ? label : bengaliLabels[index]}</a>
           })}
         </nav>
@@ -556,6 +577,43 @@ function App() {
             <Reveal><span className="eyebrow"><Music2 size={14} /> A FEAST FOR THE SENSES</span><h2>Light, rhythm,<br /><em>and togetherness.</em></h2><p>From the sound of the dhaak to intricate pandal art, every detail becomes part of a shared memory.</p><a href="#traditions" className="button button-primary">Discover the traditions <ArrowRight size={17} /></a></Reveal>
           </div>
           <div className="gallery-side-label">CULTURE · CREATIVITY · COMMUNITY</div>
+        </section>
+
+        <section className="section formation-section" id="formation-game">
+          <div className="formation-layout">
+            <Reveal className="formation-intro">
+              <span className="eyebrow"><Sparkles size={14} /> {isBengali ? 'একসঙ্গে জাগুক শক্তি' : 'A SYMBOLIC INTERACTIVE STORY'}</span>
+              <h2>{isBengali ? 'শক্তি যখন এক রূপে মেলে।' : 'When many strengths become one.'}</h2>
+              <p>{isBengali ? 'একটি বহুল প্রচলিত কাহিনিতে দেবতাদের সম্মিলিত শক্তি থেকে মা দুর্গার আবির্ভাবের কথা বলা হয়। পাঁচটি গুণ একত্র করে আলোর এই কল্পনাময় রূপান্তরটি দেখুন।' : 'In one widely told account, the devas unite their powers and Maa Durga takes form. Gather five human qualities to set this imaginative, light-filled transformation in motion.'}</p>
+              <div className="formation-story-note"><Flame size={18} /><span>{isBengali ? 'এটি একটি প্রতীকী গল্পভিত্তিক খেলা—কোনও আচার বা পূজার দৃশ্যায়ন নয়।' : 'A symbolic story game, not a depiction of a ritual or act of worship.'}</span></div>
+              <a className="formation-inline-link" href="#formation-game">{isBengali ? 'আলোর যাত্রা শুরু করুন' : 'Enter the experience'} <ArrowDown size={15} /></a>
+            </Reveal>
+
+            <div className="formation-game-card">
+              <div className="formation-game-heading">
+                <div><span className="eyebrow"><Sun size={14} /> {isBengali ? 'শক্তির পাঁচটি রূপ' : 'THE GATHERING OF STRENGTH'}</span><h3>{formationComplete ? (isBengali ? 'আলো একত্রিত হয়েছে।' : 'The light is whole.') : (isBengali ? 'পাঁচটি গুণ সংগ্রহ করুন।' : 'Gather the five qualities.')}</h3></div>
+                <span className="formation-count" aria-label={`${gatheredQualities.length} of ${formationQualities.length} gathered`}>{String(gatheredQualities.length).padStart(2, '0')}<i> / {formationQualities.length}</i></span>
+              </div>
+              <div className="formation-progress-track" role="progressbar" aria-label={isBengali ? 'সংগ্রহের অগ্রগতি' : 'Gathering progress'} aria-valuemin={0} aria-valuemax={formationQualities.length} aria-valuenow={gatheredQualities.length}><span style={{ width: `${(gatheredQualities.length / formationQualities.length) * 100}%` }} /></div>
+
+              <div className="formation-stage" data-started={formationStarted} data-complete={formationComplete}>
+                <div className="formation-mandala" aria-hidden="true" />
+                <div className="formation-seed" aria-hidden="true"><Sparkles size={32} /></div>
+                <div className="formation-orbs" aria-hidden="true">
+                  {formationQualities.map((quality, index) => { const Icon = quality.icon; return <span key={quality.id} className={gatheredQualities.includes(quality.id) ? 'is-lit' : ''} style={{ '--orb-index': index } as React.CSSProperties}><Icon size={15} /></span> })}
+                </div>
+                <img className="formation-art" src={publicAsset('durga-puja-hero.png')} alt={isBengali ? 'মা দুর্গার অনুপ্রেরণায় তৈরি ভক্তিমূলক শিল্পচিত্র' : 'AI-generated devotional illustration inspired by Maa Durga'} aria-hidden={!formationComplete} />
+                {!formationStarted && <button className="formation-begin" onClick={() => setFormationStarted(true)}><Sparkles size={17} /> {isBengali ? 'আলোর যাত্রা শুরু' : 'Begin the gathering'} <ArrowRight size={16} /></button>}
+                {formationStarted && !formationComplete && <p className="formation-stage-prompt" aria-live="polite">{isBengali ? 'নিচের গুণগুলিতে স্পর্শ করে আলো জ্বালান' : 'Choose each quality below to kindle its light.'}</p>}
+                {formationComplete && <div className="formation-awakening" role="status"><span><Sparkles size={15} /> {isBengali ? 'সম্মিলিত শক্তি' : 'STRENGTH IN UNITY'}</span><b>{isBengali ? 'জয় মা দুর্গা' : 'Jai Maa Durga'}</b></div>}
+              </div>
+
+              <div className="formation-qualities" role="group" aria-label={isBengali ? 'সংগ্রহ করার গুণগুলি' : 'Qualities to gather'}>
+                {formationQualities.map((quality) => { const Icon = quality.icon; const gathered = gatheredQualities.includes(quality.id); return <button key={quality.id} className={`formation-quality ${gathered ? 'is-gathered' : ''}`} onClick={() => gatherQuality(quality.id)} disabled={!formationStarted || gathered || formationComplete} aria-pressed={gathered}><span className="formation-quality-icon"><Icon size={17} /></span><span className="formation-quality-copy"><b>{isBengali ? quality.nameBn : quality.name}</b><small>{isBengali ? quality.noteBn : quality.note}</small></span><span className="formation-quality-check">{gathered ? <Check size={16} /> : <Plus size={16} />}</span></button> })}
+              </div>
+              <div className="formation-game-footer"><p role="status" aria-live="polite">{formationComplete ? (isBengali ? 'পাঁচটি গুণ একত্রিত হয়েছে। এই আলোই কাহিনিকে সামনে নিয়ে যায়।' : 'All five qualities have joined the light. Their unity completes the story.') : formationStarted ? `${gatheredQualities.length} ${isBengali ? 'টি গুণ একত্রিত হয়েছে' : `of ${formationQualities.length} gathered`}` : (isBengali ? 'খেলতে শুরু করলে অগ্রগতি দেখানো হবে।' : 'Your progress appears here as you play.')}</p>{formationStarted && <button className="formation-reset" onClick={resetFormation}>{isBengali ? 'আবার শুরু' : 'Start again'}</button>}</div>
+            </div>
+          </div>
         </section>
 
         <section className="section quiz-section" id="quiz">
