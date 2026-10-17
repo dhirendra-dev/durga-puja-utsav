@@ -85,6 +85,7 @@ No API keys or environment variables are required. The Vercel rewrite configurat
 ```text
 .
 ├── public/
+│   ├── gallery/           # Optimized, attributed festival photographs
 │   └── durga-puja-hero.png
 ├── src/
 │   ├── App.tsx          # Page content and interactive features
@@ -101,3 +102,12 @@ No API keys or environment variables are required. The Vercel rewrite configurat
 ## Content and cultural care
 
 This site is an educational introduction, not a definitive account of every regional tradition. Practices and interpretations vary across communities and families. Please review and adapt the content with local cultural knowledge before publishing. Ask permission before sharing someone else’s story or image, and before photographing worshippers or sacred moments. The hero artwork is an AI-generated illustration, not documentary photography of a specific pandal or ritual.
+
+## Community gallery photo credits
+
+The cultural photo gallery uses these Wikimedia Commons photographs. The site links each image to its original file page and license; images are optimized and may be cropped to fit the gallery layout.
+
+- [Durga Puja Festival — Singhee Park, Kolkata](https://commons.wikimedia.org/wiki/File:Durga_Puja_Festival_-_Singhee_Park_Durga_Puja_Dover_Lane_Kolkata_October_2023.jpg) — Pramanikshreya, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- [Colorful Durga Puja pandal decorations from Kolkata](https://commons.wikimedia.org/wiki/File:Colorful_Durga_Puja_pandal_decorations_from_Kolkata.jpg) — VedSutra, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- [Durga Puja Pandal](https://commons.wikimedia.org/wiki/File:Durga_Puja_Pandal.JPG) — Lkrath, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+- [Durga Puja Lights](https://commons.wikimedia.org/wiki/File:Durga_Puja_Lights.jpg) — Kumar83, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
