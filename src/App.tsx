@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowDown, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, Copy,
@@ -14,6 +14,7 @@ const navItems = [
   ['Explore India', 'india'],
   ['Knowledge quiz', 'quiz'],
   ['Light of Shakti', 'formation-game'],
+  ['Diya Quest', 'diya-quest'],
   ['Festival calendar', 'calendar'],
   ['Celebrate kindly', 'kindness'],
   ['Events explorer', 'events-explorer'],
@@ -95,9 +96,18 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [lightMode, setLightMode] = useState(false)
   const [language, setLanguage] = useState<'en' | 'bn'>('en')
+  const reduceMotion = useReducedMotion()
   const [formationStarted, setFormationStarted] = useState(false)
   const [gatheredQualities, setGatheredQualities] = useState<string[]>([])
   const formationComplete = gatheredQualities.length === formationQualities.length
+  const [diyaGameRunning, setDiyaGameRunning] = useState(false)
+  const [diyaLit, setDiyaLit] = useState<number[]>([])
+  const [diyaTime, setDiyaTime] = useState(30)
+  const [diyaWon, setDiyaWon] = useState(false)
+  const [diyaBest, setDiyaBest] = useState<number | null>(null)
+  const diyaStartedAt = useRef(0)
+  const diyaDeadline = useRef(0)
+  const diyaCount = 12
   
   const isBengali = language === 'bn';const [galleryFilter, setGalleryFilter] = useState('all')
   const [festivalDate, setFestivalDate] = useState('2027-10-08')
@@ -163,6 +173,39 @@ function App() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
+
+  useEffect(() => {
+    try {
+      const savedBest = window.localStorage.getItem('durga-puja-utsav:diya-best:v2')
+      if (savedBest !== null) {
+        const parsedBest = Number(savedBest)
+        if (Number.isFinite(parsedBest) && parsedBest >= 0) setDiyaBest(parsedBest)
+      }
+    } catch {
+      // The mini-game remains playable when browser storage is unavailable.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!diyaGameRunning) return
+    const updateRemainingTime = () => {
+      const remainingMs = diyaDeadline.current - performance.now()
+      const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000))
+      setDiyaTime((current) => current === remainingSeconds ? current : remainingSeconds)
+      if (remainingMs <= 0) setDiyaGameRunning(false)
+    }
+    updateRemainingTime()
+    if (diyaDeadline.current <= performance.now()) {
+      setDiyaGameRunning(false)
+      return
+    }
+    const timer = window.setInterval(updateRemainingTime, 100)
+    return () => window.clearInterval(timer)
+  }, [diyaGameRunning])
 
   useEffect(() => {
     try {
@@ -410,7 +453,7 @@ function App() {
         </a>
         <nav id="site-navigation" className={`desktop-nav ${menuOpen ? 'nav-open' : ''}`} aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}>
           {navItems.map(([label, id], index) => {
-            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'শক্তির আলোকযাত্রা', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'অনুষ্ঠান খোঁজ', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
+            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'শক্তির আলোকযাত্রা', 'দিয়া খেলা', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'অনুষ্ঠান খোঁজ', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
             return <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{language === 'en' ? label : bengaliLabels[index]}</a>
           })}
         </nav>
@@ -448,7 +491,7 @@ function App() {
             aria-label="AI-generated devotional illustration inspired by Maa Durga"
             style={{ '--parallax-x': `${heroPointer.x * -9}px`, '--parallax-y': `${heroPointer.y * -7}px` } as React.CSSProperties}
           >
-            <img src={publicAsset('durga-puja-hero.png')} alt="" />
+            <img src={publicAsset('durga-ma-hero.webp')} alt="" />
           </div>
           <div className="hero-halo" aria-hidden="true"><span /><span /><span /></div>
           <div className="hero-vignette" />
@@ -459,7 +502,7 @@ function App() {
             {Array.from({ length: 18 }, (_, i) => <span key={i} className={`petal petal-${i % 6}`} style={{ left: `${(i * 37 + 5) % 100}%`, animationDelay: `${(i % 9) * -1.4}s`, animationDuration: `${12 + (i % 5) * 2}s` }} />)}
           </div>
           <div className="hero-content">
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <motion.div initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0 : 0.8 }}>
               <span className="hero-kicker"><span /> {language === 'en' ? 'A FESTIVAL OF SHAKTI, CULTURE & HOPE' : 'শক্তি, সংস্কৃতি ও আশার উৎসব'}</span>
               <h1>{language === 'en' ? <>Where devotion<br />becomes <em>light.</em></> : <>ভক্তির আলোয়<br /><em>জেগে উঠুক প্রাণ।</em></>}</h1>
               <p className="hero-copy">{language === 'en' ? 'Discover the story of Maa Durga, the traditions that bring us together, and the timeless message of courage, compassion and good over evil.' : 'মা দুর্গার কাহিনি, আমাদের মিলিয়ে দেওয়া ঐতিহ্য এবং সাহস, সহমর্মিতা ও শুভশক্তির জয়ের চিরন্তন বার্তা আবিষ্কার করুন।'}</p>
@@ -506,7 +549,7 @@ function App() {
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE DIVINE STORY" : "দেবীর কাহিনি"} title={language === 'en' ? "A story of courage, not fear." : "সাহস ও ন্যায়ের কাহিনি।"} copy={language === 'en' ? "At the heart of Durga Puja is a powerful story about restoring balance when arrogance and injustice threaten the world." : "অহংকার ও অন্যায় যখন ভারসাম্য নষ্ট করে, তখন ন্যায় ও শক্তির পুনঃপ্রতিষ্ঠার কথা মনে করিয়ে দেয় দুর্গাপুজোর কাহিনি।"} /></Reveal>
           <div className="story-grid">
             <Reveal className="story-image-card">
-              <div className="story-image"><img src={publicAsset('durga-puja-hero.png')} alt="Devotional artwork depicting Maa Durga" /></div>
+              <div className="story-image"><img src={publicAsset('gallery/durga-story-art.webp')} alt="A beautifully crafted Bengali Durga idol in a warmly lit pandal" /></div>
               <div className="image-caption"><span>শক্তি</span><div><b>Shakti — the power to protect</b><small>Strength guided by compassion</small></div></div>
             </Reveal>
             <Reveal className="story-copy-card">
@@ -541,7 +584,7 @@ function App() {
             <div className="day-tabs" role="tablist" aria-label="Durga Puja days">
               {days.map((day, i) => <button key={day.name} className={`day-tab ${activeDay === i ? 'active' : ''}`} onClick={() => setActiveDay(i)} role="tab" aria-selected={activeDay === i}><span>{day.day}</span><b>{day.name}</b><small>{day.title}</small></button>)}
             </div>
-            <motion.div key={activeDay} className="day-detail" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+              <motion.div key={activeDay} className="day-detail" initial={reduceMotion ? false : { opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: reduceMotion ? 0 : 0.3 }}>
               <span className="eyebrow"><CalendarDays size={14} /> DAY {days[activeDay].day}</span>
               <h3>{days[activeDay].title}</h3>
               <p>{days[activeDay].text}</p>
@@ -571,7 +614,7 @@ function App() {
         </section>
 
         <section className="gallery-band" id="gallery">
-          <div className="gallery-image"><img src={publicAsset('durga-puja-hero.png')} alt="Illuminated festive pandal and devotional Durga Puja scene" /></div>
+          <div className="gallery-image"><img src={publicAsset('gallery/dhaak-evening.webp')} alt="Dhaak drummers and glowing festival lights at a Bengali Durga Puja celebration" /></div>
           <div className="gallery-overlay" />
           <div className="gallery-content">
             <Reveal><span className="eyebrow"><Music2 size={14} /> A FEAST FOR THE SENSES</span><h2>Light, rhythm,<br /><em>and togetherness.</em></h2><p>From the sound of the dhaak to intricate pandal art, every detail becomes part of a shared memory.</p><a href="#traditions" className="button button-primary">Discover the traditions <ArrowRight size={17} /></a></Reveal>
@@ -602,7 +645,7 @@ function App() {
                 <div className="formation-orbs" aria-hidden="true">
                   {formationQualities.map((quality, index) => { const Icon = quality.icon; return <span key={quality.id} className={gatheredQualities.includes(quality.id) ? 'is-lit' : ''} style={{ '--orb-index': index } as React.CSSProperties}><Icon size={15} /></span> })}
                 </div>
-                <img className="formation-art" src={publicAsset('durga-puja-hero.png')} alt={isBengali ? 'মা দুর্গার অনুপ্রেরণায় তৈরি ভক্তিমূলক শিল্পচিত্র' : 'AI-generated devotional illustration inspired by Maa Durga'} aria-hidden={!formationComplete} />
+                <img className="formation-art" src={publicAsset('gallery/durga-story-art.webp')} alt={isBengali ? 'মা দুর্গার অনুপ্রেরণায় তৈরি ভক্তিমূলক শিল্পচিত্র' : 'AI-generated devotional illustration inspired by Maa Durga'} aria-hidden={!formationComplete} />
                 {!formationStarted && <button className="formation-begin" onClick={() => setFormationStarted(true)}><Sparkles size={17} /> {isBengali ? 'আলোর যাত্রা শুরু' : 'Begin the gathering'} <ArrowRight size={16} /></button>}
                 {formationStarted && !formationComplete && <p className="formation-stage-prompt" aria-live="polite">{isBengali ? 'নিচের গুণগুলিতে স্পর্শ করে আলো জ্বালান' : 'Choose each quality below to kindle its light.'}</p>}
                 {formationComplete && <div className="formation-awakening" role="status"><span><Sparkles size={15} /> {isBengali ? 'সম্মিলিত শক্তি' : 'STRENGTH IN UNITY'}</span><b>{isBengali ? 'জয় মা দুর্গা' : 'Jai Maa Durga'}</b></div>}
@@ -612,6 +655,54 @@ function App() {
                 {formationQualities.map((quality) => { const Icon = quality.icon; const gathered = gatheredQualities.includes(quality.id); return <button key={quality.id} className={`formation-quality ${gathered ? 'is-gathered' : ''}`} onClick={() => gatherQuality(quality.id)} disabled={!formationStarted || gathered || formationComplete} aria-pressed={gathered}><span className="formation-quality-icon"><Icon size={17} /></span><span className="formation-quality-copy"><b>{isBengali ? quality.nameBn : quality.name}</b><small>{isBengali ? quality.noteBn : quality.note}</small></span><span className="formation-quality-check">{gathered ? <Check size={16} /> : <Plus size={16} />}</span></button> })}
               </div>
               <div className="formation-game-footer"><p role="status" aria-live="polite">{formationComplete ? (isBengali ? 'পাঁচটি গুণ একত্রিত হয়েছে। এই আলোই কাহিনিকে সামনে নিয়ে যায়।' : 'All five qualities have joined the light. Their unity completes the story.') : formationStarted ? `${gatheredQualities.length} ${isBengali ? 'টি গুণ একত্রিত হয়েছে' : `of ${formationQualities.length} gathered`}` : (isBengali ? 'খেলতে শুরু করলে অগ্রগতি দেখানো হবে।' : 'Your progress appears here as you play.')}</p>{formationStarted && <button className="formation-reset" onClick={resetFormation}>{isBengali ? 'আবার শুরু' : 'Start again'}</button>}</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section diya-quest-section" id="diya-quest">
+          <Reveal><SectionHeading eyebrow={isBengali ? 'আলোর ছোট্ট খেলা' : 'A LITTLE FESTIVAL CHALLENGE'} title={isBengali ? 'আলো জ্বালান, পথ সাজান।' : 'Light the path, one diya at a time.'} copy={isBengali ? '৩০ সেকেন্ডে বারোটি প্রদীপ জ্বালিয়ে আলোর মণ্ডল সম্পূর্ণ করুন।' : 'A gentle, joyful speed game: light all twelve diyas before the 30-second timer runs out.'} /></Reveal>
+          <div className="diya-quest-card">
+            <div className="diya-quest-copy">
+              <span className="diya-quest-mark"><Sparkles size={22} /></span>
+              <span className="eyebrow">{isBengali ? 'শুভ শক্তি ভাগ করে নিন' : 'SHARE A LITTLE LIGHT'}</span>
+              <h3>{diyaWon ? (isBengali ? 'আলোর মণ্ডল সম্পূর্ণ!' : 'The circle is complete!') : diyaTime === 0 ? (isBengali ? 'সময় শেষ—আবার চেষ্টা করুন।' : 'Time’s up — give it another go.') : isBengali ? 'প্রদীপগুলি জ্বালান।' : 'Can you light them all?'}</h3>
+              <p>{isBengali ? 'প্রতিটি প্রদীপে চাপ দিন। সব বারোটি জ্বললে আলোর মণ্ডল ফুটে উঠবে।' : 'Tap each lamp once. Every little flame joins the mandala, and the whole circle glows when all twelve are lit.'}</p>
+              <div className="diya-quest-stats">
+                <div><strong>{String(diyaTime).padStart(2, '0')}<small>s</small></strong><span>{isBengali ? 'বাকি সময়' : 'time left'}</span></div>
+                <div><strong>{String(diyaLit.length).padStart(2, '0')}<small>/{diyaCount}</small></strong><span>{isBengali ? 'প্রদীপ জ্বলেছে' : 'diyas glowing'}</span></div>
+                <div><strong>{diyaBest === null ? '—' : diyaBest}<small>{diyaBest === null ? '' : 's'}</small></strong><span>{isBengali ? 'দ্রুততম সময়' : 'fastest clear'}</span></div>
+              </div>
+              <div className="diya-quest-actions">
+                <button className="button button-primary" onClick={() => { const startedAt = performance.now(); diyaStartedAt.current = startedAt; diyaDeadline.current = startedAt + 30000; setDiyaLit([]); setDiyaTime(30); setDiyaWon(false); setDiyaGameRunning(true) }}>
+                  {diyaGameRunning ? (isBengali ? 'আবার শুরু' : 'Restart game') : diyaWon || diyaTime === 0 ? (isBengali ? 'আবার খেলুন' : 'Play again') : (isBengali ? 'খেলা শুরু করুন' : 'Start the game')} <ArrowRight size={16} />
+                </button>
+                <span role="status" aria-live="polite">{diyaWon ? (isBengali ? 'দারুণ খেলেছেন!' : 'Beautifully done!') : diyaGameRunning ? (isBengali ? 'প্রদীপ জ্বালাতে থাকুন…' : 'Keep lighting the diyas…') : (isBengali ? 'আপনার সেরা সময় এই ডিভাইসে রাখা হবে।' : 'Your best clear time is saved on this device.')}</span>
+              </div>
+            </div>
+            <div className={`diya-board ${diyaWon ? 'is-complete' : ''}`} role="group" aria-label={isBengali ? 'বারোটি প্রদীপ জ্বালানোর খেলা' : 'Light all twelve diyas'}>
+              {Array.from({ length: diyaCount }, (_, index) => {
+                const lit = diyaLit.includes(index)
+                const angle = (index / diyaCount) * Math.PI * 2 - Math.PI / 2
+                return <button key={index} type="button" className={`diya-button ${lit ? 'is-lit' : ''}`} style={{ left: `${50 + Math.cos(angle) * 37}%`, top: `${50 + Math.sin(angle) * 37}%` }} onClick={() => {
+                  if (!diyaGameRunning || lit) return
+                  if (performance.now() >= diyaDeadline.current) { setDiyaTime(0); setDiyaGameRunning(false); return }
+                  const next = [...diyaLit, index]
+                  setDiyaLit(next)
+                  if (next.length === diyaCount) {
+                    setDiyaWon(true)
+                    setDiyaGameRunning(false)
+                    const record = Math.max(1, Math.ceil((performance.now() - diyaStartedAt.current) / 1000))
+                    setDiyaBest((previous) => {
+                      const best = previous === null ? record : Math.min(previous, record)
+                      try { window.localStorage.setItem('durga-puja-utsav:diya-best:v2', String(best)) } catch { /* Saving a record is optional. */ }
+                      return best
+                    })
+                  }
+                }} disabled={!diyaGameRunning || lit} aria-label={`${isBengali ? 'প্রদীপ' : 'Diya'} ${index + 1}${lit ? (isBengali ? ' জ্বলছে' : ' lit') : ''}`} aria-pressed={lit}>
+                  <span className="diya-flame"><Flame size={20} fill="currentColor" /></span><span className="diya-bowl" />
+                </button>
+              })}
+              <div className="diya-board-center" aria-hidden="true"><span>শুভ</span><b>দুর্গা</b><small>পূজা</small></div>
             </div>
           </div>
         </section>
@@ -626,7 +717,7 @@ function App() {
               <div className="quiz-options">
                 {quiz[quizIndex].options.map((option, i) => <button key={option} className={`quiz-option ${selected !== null && i === quiz[quizIndex].answer ? 'correct' : ''} ${selected === i && i !== quiz[quizIndex].answer ? 'incorrect' : ''}`} onClick={() => answerQuiz(i)} disabled={selected !== null}><span>{String.fromCharCode(65 + i)}</span>{option}{selected !== null && i === quiz[quizIndex].answer && <Check size={17} />}</button>)}
               </div>
-              {selected !== null && <motion.div className="quiz-explanation" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}><b>{selected === quiz[quizIndex].answer ? 'Well done!' : 'Keep learning!'}</b><p>{quiz[quizIndex].explain}</p><button className="button button-primary" onClick={nextQuestion}>{quizIndex === quiz.length - 1 ? 'See results' : 'Next question'} <ArrowRight size={16} /></button></motion.div>}
+              {selected !== null && <motion.div className="quiz-explanation" initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0 : 0.3 }}><b>{selected === quiz[quizIndex].answer ? 'Well done!' : 'Keep learning!'}</b><p>{quiz[quizIndex].explain}</p><button className="button button-primary" onClick={nextQuestion}>{quizIndex === quiz.length - 1 ? 'See results' : 'Next question'} <ArrowRight size={16} /></button></motion.div>}
             </> : <div className="quiz-result"><span className="result-spark"><Sparkles size={28} /></span><span className="eyebrow">QUIZ COMPLETE</span><h3>{score} out of {quiz.length}</h3><p>{score === quiz.length ? 'Wonderful! You know your Puja basics.' : 'Every new fact is a reason to keep exploring.'} Share what you learned with someone today.</p><button className="button button-primary" onClick={resetQuiz}>Try again <ArrowRight size={16} /></button></div>}
           </div>
         </section>
@@ -676,16 +767,16 @@ function App() {
           </div>
           <div className="culture-gallery-grid">
             {[
-              { category: 'art', num: '01', image: publicAsset('gallery/singhee-park-puja.jpg'), alt: 'Durga Puja idol and ornate pandal at Singhee Park in Kolkata', title: language === 'en' ? 'A home for the Goddess' : 'দেবীর আবাস', text: language === 'en' ? 'An intricate pandal frames a richly detailed Durga Puja tableau.' : 'সুন্দরভাবে সাজানো প্যান্ডেলে দেবী দুর্গার অপরূপ প্রতিমা।', author: 'Pramanikshreya', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Festival_-_Singhee_Park_Durga_Puja_Dover_Lane_Kolkata_October_2023.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-              { category: 'art', num: '02', image: publicAsset('gallery/pandal-architecture.jpg'), alt: 'A sculptural, cream-and-red Durga Puja pandal entrance in Kolkata', title: language === 'en' ? 'Pandal as public art' : 'প্যান্ডেল যখন শিল্প', text: language === 'en' ? 'Temporary architecture turns craft and imagination into a shared landmark.' : 'কারুশিল্প ও কল্পনায় অস্থায়ী স্থাপনা হয়ে ওঠে সবার আকর্ষণ।', author: 'VedSutra', source: 'https://commons.wikimedia.org/wiki/File:Colorful_Durga_Puja_pandal_decorations_from_Kolkata.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-              { category: 'ritual', num: '03', image: publicAsset('gallery/puja-pandal.jpg'), alt: 'A brightly illuminated Durga Puja pandal with the Goddess and devotees', title: language === 'en' ? 'A moment of devotion' : 'ভক্তির এক মুহূর্ত', text: language === 'en' ? 'Worship and gathering take place in spaces made beautiful by local hands.' : 'স্থানীয় মানুষের সৃষ্ট সুন্দর পরিসরে একত্রিত হন ভক্তরা।', author: 'Lkrath', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Pandal.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' },
-              { category: 'community', num: '04', image: publicAsset('gallery/festival-lights.jpg'), alt: 'Colorful illuminated street decorations during Durga Puja in Kolkata', title: language === 'en' ? 'The city comes alive' : 'আলোয় জেগে ওঠে শহর', text: language === 'en' ? 'Festival lights transform familiar streets into places of wonder.' : 'উৎসবের আলোয় চেনা পথও হয়ে ওঠে বিস্ময়ের।', author: 'Kumar83', source: 'https://commons.wikimedia.org/wiki/File:Durga_Puja_Lights.jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' },
+              { category: 'art', num: '01', image: publicAsset('gallery/utsav-pandal-night.webp'), alt: 'A warmly illuminated Bengali Durga Puja pandal with the Goddess at its heart', title: language === 'en' ? 'A home for the Goddess' : 'দেবীর আবাস', text: language === 'en' ? 'A glowing pandal frames a richly detailed Durga Puja tableau.' : 'আলোকিত প্যান্ডেলে দেবী দুর্গার অপরূপ প্রতিমা।' },
+              { category: 'art', num: '02', image: publicAsset('gallery/pandal-artistry.webp'), alt: 'Hand-crafted terracotta and gold architectural details inside a Durga Puja pandal', title: language === 'en' ? 'Pandal as public art' : 'প্যান্ডেল যখন শিল্প', text: language === 'en' ? 'Temporary architecture turns craft and imagination into a shared landmark.' : 'কারুশিল্প ও কল্পনায় অস্থায়ী স্থাপনা হয়ে ওঠে সবার আকর্ষণ।' },
+              { category: 'ritual', num: '03', image: publicAsset('gallery/anjali-offering.webp'), alt: 'A brass offering plate with hibiscus, white flowers and a softly glowing diya', title: language === 'en' ? 'A moment of devotion' : 'ভক্তির এক মুহূর্ত', text: language === 'en' ? 'Flowers and gentle lamplight bring a quiet pause for reflection.' : 'ফুল ও প্রদীপের আলো ভাবনার এক শান্ত মুহূর্ত এনে দেয়।' },
+              { category: 'community', num: '04', image: publicAsset('gallery/diyas-community.webp'), alt: 'Diyas glowing as neighbors gather for Durga Puja in Kolkata', title: language === 'en' ? 'The city comes alive' : 'আলোয় জেগে ওঠে শহর', text: language === 'en' ? 'Festival lights transform familiar streets into places of wonder.' : 'উৎসবের আলোয় চেনা পথও হয়ে ওঠে বিস্ময়ের।' },
             ].filter(item => galleryFilter === 'all' || item.category === galleryFilter).map(item => <Reveal key={item.num} className="culture-tile">
               <div className="culture-tile-image"><img src={item.image} alt={item.alt} loading="lazy" /><span>{item.num}</span><b>{item.category === 'art' ? 'ART & PANDALS' : item.category.toUpperCase()}</b></div>
-              <div className="culture-tile-copy"><small>{item.category.toUpperCase()}</small><h3>{item.title}</h3><p>{item.text}</p><p className="culture-photo-credit">Photo: <a href={item.source} target="_blank" rel="noreferrer">{item.author}</a> · <a href={item.licenseUrl} target="_blank" rel="noreferrer">{item.license}</a></p></div>
+              <div className="culture-tile-copy"><small>{item.category.toUpperCase()}</small><h3>{item.title}</h3><p>{item.text}</p><p className="culture-photo-credit">Original artwork created for Durga Puja Utsav</p></div>
             </Reveal>)}
           </div>
-          <p className="gallery-disclaimer">{language === 'en' ? 'Photographs are from Wikimedia Commons and are credited to their creators. Images may be cropped to fit the cards; open each credit for the original and license. Each depicts its own place and occasion.' : 'ছবিগুলি Wikimedia Commons থেকে নেওয়া এবং আলোকচিত্রীদের কৃতিত্বসহ প্রদর্শিত। কার্ডে মানানসই করতে ছবি ক্রপ করা হতে পারে; মূল ছবি ও লাইসেন্স দেখতে ছবির কৃতিত্বে ক্লিক করুন। প্রতিটি ছবি নিজস্ব স্থান ও সময়ের।'}</p>
+          <p className="gallery-disclaimer">{language === 'en' ? 'These original AI-created illustrations celebrate the visual craft, community and warmth of Durga Puja; they are interpretive artwork, not documentary photographs of a specific pandal.' : 'এই নতুন AI-তৈরি শিল্পচিত্রে দুর্গাপুজোর কারুশিল্প, সম্প্রীতি ও উষ্ণতাকে উদ্‌যাপন করা হয়েছে; এগুলি কোনও নির্দিষ্ট প্যান্ডেলের তথ্যচিত্রমূলক ছবি নয়।'}</p>
         </section>
 
         <section className="section kindness-section" id="kindness">
