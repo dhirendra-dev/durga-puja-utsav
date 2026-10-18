@@ -17,6 +17,7 @@ const navItems = [
   ['Diya Quest', 'diya-quest'],
   ['Utsav Arcade', 'utsav-arcade'],
   ['Festival calendar', 'calendar'],
+  ['Greeting cards', 'greetings'],
   ['Celebrate kindly', 'kindness'],
   ['Events explorer', 'events-explorer'],
   ['Pandal map', 'pandal-map'],
@@ -35,6 +36,11 @@ const pushpanjaliLines = [
   { sanskrit: 'दुर्गा क्षमा शिवा धात्री स्वाहा स्वधा नमोऽस्तु ते', transliteration: 'Durga Kshama Shiva Dhatri Svaha Swadha Namostute', bengali: 'দুর্গা ক্ষমা শিবা ধাত্রী স্বাহা স্বধা নমোস্তুতে', meaning: 'To Durga, compassion, auspiciousness and the sustaining Mother, I bow.' },
   { sanskrit: 'ॐ सर्वमङ्गलमाङ्गल्ये शिवे सर्वार्थसाधिके', transliteration: 'Om Sarva Mangala Mangalye Shive Sarvartha Sadhike', bengali: 'ওঁ সর্বমঙ্গলমাঙ্গল্যে শিবে সর্বার্থসাধিকে', meaning: 'O source of all auspiciousness, bringer of well-being and fulfilment.' },
   { sanskrit: 'शरण्ये त्र्यम्बके गौरि नारायणि नमोऽस्तु ते', transliteration: 'Sharanye Tryambake Gauri Narayani Namostute', bengali: 'শরণ্যে ত্র্যম্বকে গৌরি নারায়ণী নমোস্তুতে', meaning: 'O refuge, three-eyed Gauri, Narayani — I offer my respectful salutations.' },
+] as const
+const greetingThemes = [
+  { id: 'sunset', label: 'Sunset Shakti', colors: ['#241323', '#9b442e'], accent: '#ffd47d' },
+  { id: 'lotus', label: 'Lotus Glow', colors: ['#311a36', '#b25b73'], accent: '#ffe0b4' },
+  { id: 'deepam', label: 'Deepam Gold', colors: ['#101b30', '#8a4d24'], accent: '#f9d486' },
 ] as const
 const tithiSchedule = [
   { name: 'Shashthi', bn: 'ষষ্ঠী', time: '06:18 – 19:42', note: 'Bodhan & welcome of Maa Durga' },
@@ -182,6 +188,11 @@ function App() {
   const [repeatTrack, setRepeatTrack] = useState(false)
   const [activeMantraLine, setActiveMantraLine] = useState<number | null>(null)
   const [mantraReading, setMantraReading] = useState(false)
+  const [greetingRecipient, setGreetingRecipient] = useState('')
+  const [greetingSender, setGreetingSender] = useState('')
+  const [greetingMessage, setGreetingMessage] = useState('May Maa Durga bless your home with courage, joy and light.')
+  const [greetingTheme, setGreetingTheme] = useState('sunset')
+  const [greetingNotice, setGreetingNotice] = useState('')
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -282,6 +293,30 @@ function App() {
       return
     }
     changeTrack(1)
+  }
+  const greetingText = () => `শুভ দুর্গা পূজা!\n${greetingRecipient ? `Dear ${greetingRecipient},\n` : ''}${greetingMessage}${greetingSender ? `\n— ${greetingSender}` : ''}`
+  const wrapCanvasText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
+    const words = text.split(' '); const lines: string[] = []; let line = ''
+    words.forEach((word) => { const test = line ? `${line} ${word}` : word; if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word } else line = test })
+    if (line) lines.push(line); return lines
+  }
+  const drawGreetingCard = () => {
+    const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 1500
+    const ctx = canvas.getContext('2d'); if (!ctx) return null
+    const theme = greetingThemes.find((item) => item.id === greetingTheme) || greetingThemes[0]
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 1500); gradient.addColorStop(0, theme.colors[0]); gradient.addColorStop(1, theme.colors[1]); ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = 'rgba(255,220,150,.12)'; ctx.beginPath(); ctx.arc(930, 230, 260, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(160, 1270, 320, 0, Math.PI * 2); ctx.fill()
+    ctx.strokeStyle = theme.accent; ctx.globalAlpha = .7; ctx.lineWidth = 3; ctx.strokeRect(42, 42, 1116, 1416); ctx.lineWidth = 1; ctx.strokeRect(62, 62, 1076, 1376); ctx.globalAlpha = 1
+    ctx.textAlign = 'center'; ctx.fillStyle = theme.accent; ctx.font = '72px Georgia'; ctx.fillText('ॐ', 600, 220); ctx.font = '700 44px Arial'; ctx.fillText('SHUBHO DURGA PUJA', 600, 335)
+    ctx.font = '36px Georgia'; const greetingLines = wrapCanvasText(ctx, greetingMessage, 820); ctx.fillStyle = '#fff4df'; greetingLines.slice(0, 5).forEach((line, i) => ctx.fillText(line, 600, 620 + i * 58))
+    ctx.font = '34px Arial'; ctx.fillStyle = theme.accent; if (greetingRecipient) ctx.fillText(`Dear ${greetingRecipient}`, 600, 500)
+    ctx.font = '30px Georgia'; if (greetingSender) ctx.fillText(`— ${greetingSender}`, 600, 1040); ctx.font = '26px Arial'; ctx.fillText('Courage • Compassion • Light', 600, 1270)
+    return canvas
+  }
+  const downloadGreeting = () => { const canvas = drawGreetingCard(); if (!canvas) return; const link = document.createElement('a'); link.download = 'durga-puja-greeting.png'; link.href = canvas.toDataURL('image/png'); link.click(); setGreetingNotice(language === 'en' ? 'Your greeting card was downloaded.' : 'আপনার শুভেচ্ছা কার্ড ডাউনলোড হয়েছে।') }
+  const shareGreeting = async () => {
+    const text = greetingText()
+    try { if (navigator.share) await navigator.share({ title: 'Shubho Durga Puja', text, url: window.location.href }); else if (navigator.clipboard) { await navigator.clipboard.writeText(text); setGreetingNotice(language === 'en' ? 'Greeting text copied to your clipboard.' : 'শুভেচ্ছার লেখা কপি হয়েছে।') } } catch { setGreetingNotice(language === 'en' ? 'Sharing was cancelled.' : 'শেয়ার বাতিল হয়েছে।') }
   }
   const speakMantraLine = (index: number) => {
     if (!('speechSynthesis' in window)) return
@@ -1016,6 +1051,13 @@ function App() {
             <div className="mantra-actions"><button className="button button-primary" type="button" onClick={toggleMantraReading}><Music2 size={15} /> {mantraReading ? (language === 'en' ? 'Stop reading' : 'পাঠ থামান') : (language === 'en' ? 'Play full pronunciation' : 'সম্পূর্ণ উচ্চারণ শুনুন')}</button><span className="mantra-support-note">{('speechSynthesis' in window) ? (language === 'en' ? 'Uses your device voice' : 'আপনার ডিভাইসের কণ্ঠ ব্যবহার করে') : (language === 'en' ? 'Audio voice is not available in this browser' : 'এই ব্রাউজারে অডিও কণ্ঠ নেই')}</span></div>
             <div className="mantra-lines">{pushpanjaliLines.map((line, index) => <article className={`mantra-line ${activeMantraLine === index ? 'is-speaking' : ''}`} key={line.transliteration}><div className="mantra-line-number">0{index + 1}</div><div className="mantra-line-copy"><b>{line.sanskrit}</b><span>{line.transliteration}</span><em>{line.bengali}</em><small>{line.meaning}</small></div><button type="button" className="mantra-speak" onClick={() => speakMantraLine(index)} aria-label={`Hear pronunciation for line ${index + 1}`}><Music2 size={16} /></button></article>)}</div>
             <p className="mantra-footnote">{language === 'en' ? 'Pronunciation is a learning aid, not a substitute for guidance from your family or priest. Offer flowers respectfully according to your tradition.' : 'উচ্চারণের এই সহায়িকা শেখার জন্য; পরিবারের রীতি বা পুরোহিতের নির্দেশের বিকল্প নয়। নিজের ঐতিহ্য অনুযায়ী শ্রদ্ধার সঙ্গে ফুল অর্পণ করুন।'}</p>
+          </div>
+        </section>
+        <section className="section greetings-section" id="greetings">
+          <Reveal><SectionHeading eyebrow={language === 'en' ? 'SEND LIGHT FORWARD' : 'আলোর শুভেচ্ছা পাঠান'} title={language === 'en' ? 'Make a festive wish.' : 'উৎসবের শুভেচ্ছা তৈরি করুন।'} copy={language === 'en' ? 'Create a personal Durga Puja greeting card, preview it instantly, then download or share it with someone you love.' : 'নিজের দুর্গাপুজোর শুভেচ্ছা কার্ড তৈরি করুন, সঙ্গে সঙ্গে দেখুন, তারপর ডাউনলোড বা প্রিয়জনের সঙ্গে শেয়ার করুন।'} /></Reveal>
+          <div className="greeting-studio">
+            <div className="greeting-editor"><span className="eyebrow"><Sparkles size={14} /> {language === 'en' ? 'CARD STUDIO' : 'কার্ড স্টুডিও'}</span><h3>{language === 'en' ? 'Your words, your light.' : 'আপনার কথা, আপনার আলো।'}</h3><label className="greeting-field"><span>{language === 'en' ? 'Recipient name' : 'প্রাপকের নাম'}</span><input value={greetingRecipient} onChange={(e) => setGreetingRecipient(e.target.value.slice(0, 50))} placeholder={language === 'en' ? 'Dear family and friends' : 'প্রিয় পরিবার ও বন্ধুরা'} /></label><label className="greeting-field"><span>{language === 'en' ? 'Your message' : 'আপনার বার্তা'}</span><textarea rows={4} maxLength={180} value={greetingMessage} onChange={(e) => setGreetingMessage(e.target.value)} /></label><label className="greeting-field"><span>{language === 'en' ? 'From' : 'প্রেরক'}</span><input value={greetingSender} onChange={(e) => setGreetingSender(e.target.value.slice(0, 50))} placeholder={language === 'en' ? 'Your name' : 'আপনার নাম'} /></label><div className="theme-picker"><span>{language === 'en' ? 'Choose a mood' : 'একটি রং বেছে নিন'}</span><div>{greetingThemes.map((theme) => <button type="button" key={theme.id} className={greetingTheme === theme.id ? 'selected' : ''} style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }} onClick={() => setGreetingTheme(theme.id)} aria-label={theme.label} />)}</div></div><div className="greeting-actions"><button type="button" className="button button-primary" onClick={downloadGreeting}><Download size={15} /> {language === 'en' ? 'Download card' : 'কার্ড ডাউনলোড করুন'}</button><button type="button" className="button button-quiet" onClick={shareGreeting}><Send size={15} /> {language === 'en' ? 'Share wish' : 'শুভেচ্ছা শেয়ার করুন'}</button></div>{greetingNotice && <p className="greeting-notice"><Check size={14} /> {greetingNotice}</p>}</div>
+            <div className="greeting-preview-wrap"><span className="eyebrow">{language === 'en' ? 'LIVE PREVIEW' : 'সঙ্গে সঙ্গে পূর্বরূপ'}</span><div className={`greeting-card-preview theme-${greetingTheme}`}><span className="preview-om">ॐ</span><strong>SHUBHO DURGA PUJA</strong>{greetingRecipient && <b>Dear {greetingRecipient}</b>}<p>{greetingMessage}</p>{greetingSender && <em>— {greetingSender}</em>}<small>Courage • Compassion • Light</small></div><p className="greeting-preview-note">{language === 'en' ? 'The downloaded card is rendered as a high-resolution PNG.' : 'ডাউনলোড করা কার্ডটি উচ্চ-রেজোলিউশনের PNG হিসেবে তৈরি হবে।'}</p></div>
           </div>
         </section>
         <section className="section culture-gallery-section" id="culture-gallery">
