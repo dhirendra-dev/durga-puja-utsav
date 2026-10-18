@@ -213,6 +213,9 @@ function App() {
   const [bellCount, setBellCount] = useState(0)
   const [flowerCount, setFlowerCount] = useState(0)
   const [aartiPulse, setAartiPulse] = useState<'bell' | 'flower' | null>(null)
+  const [aartiSoundEnabled, setAartiSoundEnabled] = useState(true)
+  const [aartiChantEnabled, setAartiChantEnabled] = useState(true)
+  const aartiAudioRef = useRef<HTMLAudioElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -339,9 +342,29 @@ function App() {
     const timer = window.setInterval(() => setAartiTime((time) => { if (time <= 1) { setAartiRunning(false); return 0 } return time - 1 }), 1000)
     return () => window.clearInterval(timer)
   }, [aartiRunning])
-  const startAarti = () => { setAartiRunning(true); setAartiTime(180); setBellCount(0); setFlowerCount(0) }
-  const ringBell = () => { if (!aartiRunning) return; setBellCount((count) => count + 1); setAartiPulse('bell'); window.setTimeout(() => setAartiPulse(null), 360) }
+  const speakAartiChant = () => {
+    if (!aartiChantEnabled || !('speechSynthesis' in window)) return
+    window.speechSynthesis.cancel()
+    const chant = new SpeechSynthesisUtterance('Om Jayanti Mangala Kali, Bhadrakali Kapalini. Durga Kshama Shiva Dhatri, Swaha Swadha Namostute.')
+    chant.lang = 'en-IN'; chant.rate = 0.68; chant.pitch = 0.9; window.speechSynthesis.speak(chant)
+  }
+  const playTempleBell = () => {
+    if (!aartiSoundEnabled) return
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!AudioContextClass) return
+    const context = new AudioContextClass(); const now = context.currentTime
+    ;[440, 660, 880].forEach((frequency, index) => { const oscillator = context.createOscillator(); const gain = context.createGain(); oscillator.type = 'sine'; oscillator.frequency.value = frequency; gain.gain.setValueAtTime(0.0001, now); gain.gain.exponentialRampToValueAtTime(0.18 / (index + 1), now + 0.015); gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2 + index * 0.18); oscillator.connect(gain); gain.connect(context.destination); oscillator.start(now); oscillator.stop(now + 1.5 + index * 0.18) })
+    window.setTimeout(() => context.close().catch(() => undefined), 2200)
+  }
+  const startAarti = () => { setAartiRunning(true); setAartiTime(180); setBellCount(0); setFlowerCount(0); if (aartiSoundEnabled) aartiAudioRef.current?.play().catch(() => undefined); speakAartiChant() }
+  const ringBell = () => { if (!aartiRunning) return; setBellCount((count) => count + 1); setAartiPulse('bell'); playTempleBell(); window.setTimeout(() => setAartiPulse(null), 360) }
   const showerFlowers = () => { if (!aartiRunning) return; setFlowerCount((count) => count + 3); setAartiPulse('flower'); window.setTimeout(() => setAartiPulse(null), 700) }
+  useEffect(() => {
+    const audio = aartiAudioRef.current
+    if (!audio) return
+    if (aartiRunning && aartiSoundEnabled) audio.play().catch(() => undefined)
+    else audio.pause()
+  }, [aartiRunning, aartiSoundEnabled])
   const formatAartiTime = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
   const greetingText = () => `শুভ দুর্গা পূজা!\n${greetingRecipient ? `Dear ${greetingRecipient},\n` : ''}${greetingMessage}${greetingSender ? `\n— ${greetingSender}` : ''}`
   const wrapCanvasText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
@@ -738,6 +761,7 @@ function App() {
 
   return (
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
+      <audio ref={aartiAudioRef} src={publicAsset('audio/aarti-devotional-ambience.mp3')} loop preload="metadata" aria-label="Aarti devotional ambience" />
       <audio ref={audioRef} src={publicAsset(audioTracks[selectedTrack].file)} preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} onEnded={handleTrackEnd} onTimeUpdate={(e) => setAudioProgress(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)} />
       <div className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`}>
         <div className="audio-dock-main"><Music2 size={17} /><div><b>{language === 'en' ? audioTracks[selectedTrack].title : audioTracks[selectedTrack].titleBn}</b><small>{audioPlaying ? (language === 'en' ? 'Now playing' : 'এখন বাজছে') : (language === 'en' ? 'Devotional playlist' : 'ভক্তিমূলক প্লেলিস্ট')}</small></div><button type="button" className="audio-play" onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional audio' : 'Play devotional audio'}>{audioPlaying ? 'Ⅱ' : '▶'}</button></div>
@@ -1129,7 +1153,7 @@ function App() {
         </section>
         <section className="section aarti-section" id="live-aarti">
           <Reveal><SectionHeading eyebrow={language === 'en' ? 'A MOMENT OF DEVOTION' : 'ভক্তির মুহূর্ত'} title={language === 'en' ? 'Join the live Aarti.' : 'লাইভ আরতিতে যোগ দিন।'} copy={language === 'en' ? 'Begin a three-minute digital Aarti. Ring the bell and offer flowers with a mindful tap from wherever you are.' : 'তিন মিনিটের ডিজিটাল আরতি শুরু করুন। যেখানে আছেন, মন দিয়ে ঘণ্টা বাজান ও ফুল অর্পণ করুন।'} /></Reveal>
-          <div className={`aarti-room ${aartiRunning ? 'is-live' : ''}`}><div className={`aarti-sanctum ${aartiPulse ? `pulse-${aartiPulse}` : ''}`}><div className="aarti-halo" /><div className="aarti-deity">ॐ</div><div className="aarti-lamp"><i /><i /><i /></div>{aartiPulse === 'flower' && <div className="flower-shower">{Array.from({ length: 18 }, (_, index) => <span key={index}>✿</span>)}</div>}<p>{aartiRunning ? (language === 'en' ? 'Your offering is received with devotion.' : 'আপনার অর্ঘ্য ভক্তির সঙ্গে গৃহীত হয়েছে।') : (language === 'en' ? 'Light a moment of devotion.' : 'ভক্তির একটি মুহূর্ত জ্বালান।')}</p></div><div className="aarti-controls"><div className="aarti-clock"><span>{language === 'en' ? 'AARTI TIME' : 'আরতির সময়'}</span><strong>{formatAartiTime(aartiTime)}</strong></div><div className="aarti-stats"><div><b>{bellCount}</b><span>{language === 'en' ? 'bells' : 'ঘণ্টা'}</span></div><div><b>{flowerCount}</b><span>{language === 'en' ? 'flowers' : 'ফুল'}</span></div></div><div className="aarti-buttons"><button type="button" className={`aarti-action bell ${aartiPulse === 'bell' ? 'is-pressed' : ''}`} onClick={ringBell} disabled={!aartiRunning}><span> घंटा </span><b>◉</b><small>{language === 'en' ? 'Ring bell' : 'ঘণ্টা বাজান'}</small></button><button type="button" className={`aarti-action flowers ${aartiPulse === 'flower' ? 'is-pressed' : ''}`} onClick={showerFlowers} disabled={!aartiRunning}><span>✿</span><b>✿</b><small>{language === 'en' ? 'Offer flowers' : 'ফুল অর্পণ করুন'}</small></button></div><button type="button" className="button button-primary aarti-start" onClick={startAarti}>{aartiRunning ? (language === 'en' ? 'Restart Aarti' : 'আরতি আবার শুরু করুন') : aartiTime === 0 ? (language === 'en' ? 'Join again' : 'আবার যোগ দিন') : (language === 'en' ? 'Begin Aarti' : 'আরতি শুরু করুন')}</button></div></div><p className="aarti-note">{language === 'en' ? 'This is a quiet digital participation feature, not a replacement for local worship. Please follow your family and community traditions.' : 'এটি একটি শান্ত ডিজিটাল অংশগ্রহণের সুবিধা, স্থানীয় উপাসনার বিকল্প নয়। পরিবার ও সম্প্রদায়ের রীতি মেনে চলুন।'}</p>
+          <div className={`aarti-room ${aartiRunning ? 'is-live' : ''}`}><div className={`aarti-sanctum ${aartiPulse ? `pulse-${aartiPulse}` : ''}`}><div className="aarti-halo" /><div className="aarti-deity">ॐ</div><div className="aarti-lamp"><i /><i /><i /></div>{aartiPulse === 'flower' && <div className="flower-shower">{Array.from({ length: 18 }, (_, index) => <span key={index}>✿</span>)}</div>}<p>{aartiRunning ? (language === 'en' ? 'Your offering is received with devotion.' : 'আপনার অর্ঘ্য ভক্তির সঙ্গে গৃহীত হয়েছে।') : (language === 'en' ? 'Light a moment of devotion.' : 'ভক্তির একটি মুহূর্ত জ্বালান।')}</p></div><div className="aarti-controls"><div className="aarti-clock"><span>{language === 'en' ? 'AARTI TIME' : 'আরতির সময়'}</span><strong>{formatAartiTime(aartiTime)}</strong></div><div className="aarti-stats"><div><b>{bellCount}</b><span>{language === 'en' ? 'bells' : 'ঘণ্টা'}</span></div><div><b>{flowerCount}</b><span>{language === 'en' ? 'flowers' : 'ফুল'}</span></div></div><div className="aarti-buttons"><button type="button" className={`aarti-action bell ${aartiPulse === 'bell' ? 'is-pressed' : ''}`} onClick={ringBell} disabled={!aartiRunning}><span> घंटा </span><b>◉</b><small>{language === 'en' ? 'Ring bell' : 'ঘণ্টা বাজান'}</small></button><button type="button" className={`aarti-action flowers ${aartiPulse === 'flower' ? 'is-pressed' : ''}`} onClick={showerFlowers} disabled={!aartiRunning}><span>✿</span><b>✿</b><small>{language === 'en' ? 'Offer flowers' : 'ফুল অর্পণ করুন'}</small></button></div><div className="aarti-audio-options"><button type="button" onClick={() => setAartiSoundEnabled((value) => !value)} aria-pressed={aartiSoundEnabled}>{aartiSoundEnabled ? 'Ambient on' : 'Ambient off'}</button><button type="button" onClick={() => setAartiChantEnabled((value) => !value)} aria-pressed={aartiChantEnabled}>{aartiChantEnabled ? 'Chant on' : 'Chant off'}</button></div><button type="button" className="button button-primary aarti-start" onClick={startAarti}>{aartiRunning ? (language === 'en' ? 'Restart Aarti' : 'আরতি আবার শুরু করুন') : aartiTime === 0 ? (language === 'en' ? 'Join again' : 'আবার যোগ দিন') : (language === 'en' ? 'Begin Aarti' : 'আরতি শুরু করুন')}</button></div></div><p className="aarti-note">{language === 'en' ? 'This is a quiet digital participation feature, not a replacement for local worship. Please follow your family and community traditions.' : 'এটি একটি শান্ত ডিজিটাল অংশগ্রহণের সুবিধা, স্থানীয় উপাসনার বিকল্প নয়। পরিবার ও সম্প্রদায়ের রীতি মেনে চলুন।'}</p>
         </section>
         <section className="section culture-gallery-section" id="culture-gallery">
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE MANY FACES OF PUJA" : "পুজোর নানা রূপ"} title={language === 'en' ? "A festival made of many details." : "ছোট ছোট মুহূর্তে গড়ে ওঠা উৎসব।"} copy={language === 'en' ? "Explore the sights, sounds and shared moments that give the season its distinctive character." : "আলো, শিল্প, ঢাকের ছন্দ ও একসঙ্গে কাটানো মুহূর্ত—সব মিলিয়েই উৎসবের নিজস্ব রূপ তৈরি হয়।"} /></Reveal>
