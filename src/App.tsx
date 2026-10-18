@@ -565,9 +565,6 @@ function App() {
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
       <audio ref={audioRef} src={publicAsset('audio/durga-dhak.mp3')} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} />
       <button className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`} onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional dhaak' : 'Play devotional dhaak'}><Music2 size={17} /><span>{audioPlaying ? (language === 'en' ? 'Dhaak playing' : 'ঢাক বাজছে') : (language === 'en' ? 'Play dhaak' : 'ঢাক চালান')}</span><i>{audioPlaying ? 'Ⅱ' : '▶'}</i></button>
-      <audio ref={audioRef} src={publicAsset('audio/durga-dhak.mp3')} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} />
-      <button className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`} onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional dhaak' : 'Play devotional dhaak'}><Music2 size={17} /><span>{audioPlaying ? (language === 'en' ? 'Dhaak playing' : 'ঢাক বাজছে') : (language === 'en' ? 'Play dhaak' : 'ঢাক চালান')}</span><i>{audioPlaying ? 'Ⅱ' : '▶'}</i></button>
-      <header
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
