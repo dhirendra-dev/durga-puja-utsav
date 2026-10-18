@@ -9,6 +9,7 @@ The site pairs cultural storytelling with practical, interactive tools—includi
 - A devotional landing page with custom illustrative artwork and responsive navigation
 - Stories, rituals, regional traditions, and Navadurga learning cards
 - Animated devotional artwork, a light-gathering story experience, and the timed Diya Quest mini-game
+- A bilingual Utsav Arcade with a festival-symbol memory match and six cultural quiz questions
 - An interactive knowledge quiz
 - A cultural gallery with category filters
 - Festival planning tools, an events explorer, and a pandal map

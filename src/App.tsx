@@ -15,6 +15,7 @@ const navItems = [
   ['Knowledge quiz', 'quiz'],
   ['Light of Shakti', 'formation-game'],
   ['Diya Quest', 'diya-quest'],
+  ['Utsav Arcade', 'utsav-arcade'],
   ['Festival calendar', 'calendar'],
   ['Celebrate kindly', 'kindness'],
   ['Events explorer', 'events-explorer'],
@@ -57,6 +58,35 @@ const quiz = [
   { q: 'What is a pandal?', options: ['A musical instrument', 'A temporary decorated structure for worship and community', 'A type of sweet'], answer: 1, explain: 'Pandal design and construction can become a major community art project.' },
   { q: 'How many forms are included in the commonly named Navadurga?', options: ['Seven', 'Nine', 'Twelve'], answer: 1, explain: 'Navadurga means nine forms of the Goddess, especially associated with Navratri traditions.' },
   { q: 'Which sound is strongly associated with many Bengali Durga Puja celebrations?', options: ['Dhaak drumming', 'Bagpipes', 'Alpine horns'], answer: 0, explain: 'The deep, celebratory rhythm of the dhaak is an iconic part of many Bengali Puja celebrations.' },
+]
+
+const festivalMemoryPairs: { id: string; label: string; labelBn: string; fact: string; factBn: string; icon: LucideIcon }[] = [
+  { id: 'diya', label: 'Diya', labelBn: 'প্রদীপ', fact: 'A small lamp is a familiar symbol of hope and welcome during many celebrations.', factBn: 'অনেক উৎসবে ছোট প্রদীপ আশা ও স্বাগত জানানোর পরিচিত প্রতীক।', icon: Flame },
+  { id: 'dhaak', label: 'Dhaak', labelBn: 'ঢাক', fact: 'The deep, resonant dhaak rhythm is a cherished sound of many Bengali Puja celebrations.', factBn: 'গভীর, অনুরণিত ঢাকের ছন্দ বহু বাঙালি পুজো উদ্‌যাপনের প্রিয় সুর।', icon: Music2 },
+  { id: 'flower', label: 'Shiuli flowers', labelBn: 'শিউলি ফুল', fact: 'Fragrant shiuli blossoms are associated with the arrival of autumn in Bengal.', factBn: 'সুগন্ধি শিউলি ফুল বাংলায় শরতের আগমনের সঙ্গে জড়িত।', icon: Flower2 },
+  { id: 'pandal', label: 'Pandal art', labelBn: 'প্যান্ডেল শিল্প', fact: 'Pandal design can bring architecture, craft and community storytelling together.', factBn: 'প্যান্ডেলের নকশায় স্থাপত্য, কারুশিল্প ও সামষ্টিক গল্প একত্রিত হতে পারে।', icon: Sparkles },
+]
+
+type FestivalMemoryCard = { id: string; pair: string; label: string; labelBn: string; icon: LucideIcon }
+
+function createFestivalMemoryDeck(): FestivalMemoryCard[] {
+  const deck = festivalMemoryPairs.flatMap((pair) => ['a', 'b'].map((copy) => ({
+    id: `${pair.id}-${copy}`, pair: pair.id, label: pair.label, labelBn: pair.labelBn, icon: pair.icon,
+  })))
+  for (let index = deck.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]]
+  }
+  return deck
+}
+
+const culturalQuiz = [
+  { topic: 'Festival spaces', topicBn: 'উৎসবের পরিসর', question: 'What is a pandal during Durga Puja?', questionBn: 'দুর্গাপুজোর প্যান্ডেল কী?', options: ['A temporary decorated space for worship and community', 'A type of drum', 'A sweet made with jaggery'], optionsBn: ['পূজা ও মিলনের জন্য সাজানো অস্থায়ী পরিসর', 'এক ধরনের ঢাক', 'গুড় দিয়ে তৈরি মিষ্টি'], answer: 0, explain: 'Pandal designs range from traditional structures to imaginative works of public art.', explainBn: 'প্যান্ডেলের নকশা ঐতিহ্যবাহী স্থাপনা থেকে কল্পনাপ্রসূত জনশিল্প—বিভিন্ন রকম হতে পারে।' },
+  { topic: 'Sound & music', topicBn: 'সুর ও সংগীত', question: 'Which instrument is strongly associated with many Bengali Puja celebrations?', questionBn: 'বাঙালি পুজোর অনেক উদ্‌যাপনে কোন বাদ্যযন্ত্রের বিশেষ পরিচিতি?', options: ['Dhaak', 'Sitar only', 'Bagpipes'], optionsBn: ['ঢাক', 'শুধু সেতার', 'ব্যাগপাইপ'], answer: 0, explain: 'The festive rhythm of the dhaak is heard at many community celebrations.', explainBn: 'অনেক সামষ্টিক উৎসবে ঢাকের উৎসবমুখর ছন্দ শোনা যায়।' },
+  { topic: 'Puja days', topicBn: 'পুজোর দিন', question: 'Which day is commonly associated with Anjali in many Bengali Durga Puja traditions?', questionBn: 'বাঙালি দুর্গাপুজোর বহু রীতিতে অঞ্জলির সঙ্গে কোন দিনটি বিশেষভাবে যুক্ত?', options: ['Ashtami', 'Shashthi only', 'Dashami only'], optionsBn: ['অষ্টমী', 'শুধু ষষ্ঠী', 'শুধু দশমী'], answer: 0, explain: 'Anjali is especially associated with Ashtami in many Bengali observances, though customs vary.', explainBn: 'বাঙালির বহু রীতিতে অষ্টমীর সঙ্গে অঞ্জলি বিশেষভাবে জড়িত, তবে রীতি ভিন্ন হতে পারে।' },
+  { topic: 'Art & craft', topicBn: 'শিল্প ও কারুশিল্প', question: 'What makes a pandal a form of public art?', questionBn: 'প্যান্ডেল কীভাবে জনশিল্পের রূপ হয়ে ওঠে?', options: ['It is designed and built for a shared community experience', 'It must be made only of stone', 'It is always a permanent building'], optionsBn: ['সবার অভিজ্ঞতার জন্য নকশা ও নির্মাণ করা হয়', 'এটি শুধু পাথর দিয়ে তৈরি হয়', 'এটি সবসময় স্থায়ী ভবন'], answer: 0, explain: 'Artists and neighborhoods often collaborate on temporary architecture, sculpture and lighting.', explainBn: 'শিল্পী ও পাড়া-প্রতিবেশীরা প্রায়ই অস্থায়ী স্থাপত্য, ভাস্কর্য ও আলোকসজ্জায় একসঙ্গে কাজ করেন।' },
+  { topic: 'Navadurga', topicBn: 'নবদুর্গা', question: 'How many forms are represented by the name Navadurga?', questionBn: 'নবদুর্গা নামে দেবীর কয়টি রূপ বোঝানো হয়?', options: ['Nine', 'Five', 'Twelve'], optionsBn: ['নয়টি', 'পাঁচটি', 'বারোটি'], answer: 0, explain: 'Navadurga means nine forms of the Goddess, especially known in Navratri traditions.', explainBn: 'নবদুর্গা বলতে দেবীর নয়টি রূপ বোঝায়, যা বিশেষত নবরাত্রির রীতিতে পরিচিত।' },
+  { topic: 'Shared traditions', topicBn: 'সম্মিলিত ঐতিহ্য', question: 'What is one common purpose of community Puja celebrations?', questionBn: 'সামষ্টিক পুজো উদ্‌যাপনের একটি সাধারণ উদ্দেশ্য কী?', options: ['To bring neighbors together through worship and culture', 'To replace every regional custom', 'To keep art away from public spaces'], optionsBn: ['পূজা ও সংস্কৃতির মাধ্যমে প্রতিবেশীদের একত্র করা', 'সব আঞ্চলিক রীতি বদলে দেওয়া', 'জনপরিসর থেকে শিল্প সরিয়ে রাখা'], answer: 0, explain: 'Communities gather for worship, art, music, volunteering and shared meals in many different ways.', explainBn: 'বিভিন্নভাবে মানুষ পূজা, শিল্প, সংগীত, স্বেচ্ছাসেবা ও একসঙ্গে খাবারের জন্য মিলিত হন।' },
 ]
 
 const formationQualities: { id: string; name: string; nameBn: string; note: string; noteBn: string; icon: LucideIcon }[] = [
@@ -107,6 +137,19 @@ function App() {
   const [diyaBest, setDiyaBest] = useState<number | null>(null)
   const diyaStartedAt = useRef(0)
   const diyaDeadline = useRef(0)
+  const [arcadeMode, setArcadeMode] = useState<'memory' | 'quiz'>('memory')
+  const [memoryDeck, setMemoryDeck] = useState<FestivalMemoryCard[]>(createFestivalMemoryDeck)
+  const [memoryFlipped, setMemoryFlipped] = useState<string[]>([])
+  const [memoryMatched, setMemoryMatched] = useState<string[]>([])
+  const [memoryMoves, setMemoryMoves] = useState(0)
+  const [memoryFact, setMemoryFact] = useState<string | null>(null)
+  const [memoryNoMatch, setMemoryNoMatch] = useState(false)
+  const [cultureQuizIndex, setCultureQuizIndex] = useState(0)
+  const [cultureQuizSelected, setCultureQuizSelected] = useState<number | null>(null)
+  const [cultureQuizScore, setCultureQuizScore] = useState(0)
+  const [cultureQuizFinished, setCultureQuizFinished] = useState(false)
+  const cultureQuizQuestionRef = useRef<HTMLHeadingElement>(null)
+  const cultureQuizResultRef = useRef<HTMLHeadingElement>(null)
   const diyaCount = 12
   
   const isBengali = language === 'bn';const [galleryFilter, setGalleryFilter] = useState('all')
@@ -206,6 +249,29 @@ function App() {
     const timer = window.setInterval(updateRemainingTime, 100)
     return () => window.clearInterval(timer)
   }, [diyaGameRunning])
+
+  useEffect(() => {
+    if (memoryFlipped.length !== 2) return
+    const [first, second] = memoryFlipped.map((id) => memoryDeck.find((card) => card.id === id)).filter((card): card is FestivalMemoryCard => Boolean(card))
+    if (first && second && first.pair === second.pair) {
+      setMemoryMoves((moves) => moves + 1)
+      setMemoryMatched((matched) => matched.includes(first.pair) ? matched : [...matched, first.pair])
+      setMemoryFact(first.pair)
+      setMemoryNoMatch(false)
+      const timer = window.setTimeout(() => setMemoryFlipped([]), 550)
+      return () => window.clearTimeout(timer)
+    }
+    setMemoryMoves((moves) => moves + 1)
+    setMemoryFact(null)
+    setMemoryNoMatch(true)
+    const timer = window.setTimeout(() => setMemoryFlipped([]), 950)
+    return () => window.clearTimeout(timer)
+  }, [memoryDeck, memoryFlipped])
+
+  useEffect(() => {
+    if (cultureQuizFinished) cultureQuizResultRef.current?.focus()
+    else if (arcadeMode === 'quiz' && cultureQuizIndex > 0) cultureQuizQuestionRef.current?.focus()
+  }, [arcadeMode, cultureQuizFinished, cultureQuizIndex])
 
   useEffect(() => {
     try {
@@ -433,6 +499,35 @@ function App() {
     setQuizIndex(0); setSelected(null); setScore(0); setFinished(false)
   }
 
+  const resetFestivalMemory = () => {
+    setMemoryDeck(createFestivalMemoryDeck())
+    setMemoryFlipped([]); setMemoryMatched([]); setMemoryMoves(0); setMemoryFact(null); setMemoryNoMatch(false)
+  }
+  const flipFestivalMemoryCard = (card: FestivalMemoryCard) => {
+    if (memoryFlipped.length >= 2 || memoryMatched.includes(card.pair) || memoryFlipped.includes(card.id)) return
+    if (memoryFlipped.length === 0) { setMemoryFact(null); setMemoryNoMatch(false) }
+    setMemoryFlipped((flipped) => [...flipped, card.id])
+  }
+  const answerCultureQuiz = (index: number) => {
+    if (cultureQuizSelected !== null) return
+    setCultureQuizSelected(index)
+    if (index === culturalQuiz[cultureQuizIndex].answer) setCultureQuizScore((score) => score + 1)
+  }
+  const nextCultureQuestion = () => {
+    if (cultureQuizIndex === culturalQuiz.length - 1) setCultureQuizFinished(true)
+    else { setCultureQuizIndex((current) => current + 1); setCultureQuizSelected(null) }
+  }
+  const resetCultureQuiz = () => {
+    setCultureQuizIndex(0); setCultureQuizSelected(null); setCultureQuizScore(0); setCultureQuizFinished(false)
+  }
+  const memoryFeedback = memoryMatched.length === festivalMemoryPairs.length
+    ? (isBengali ? 'চমৎকার! সব জোড়া মিলেছে—এবার নতুন করে খেলুন।' : 'Beautifully matched! You found every pair — play again for a fresh shuffle.')
+    : memoryNoMatch
+      ? (isBengali ? 'জোড়াটি মেলেনি—আরও একটি জোড়া চেষ্টা করুন।' : 'Not a match yet — try another pair.')
+      : memoryFact
+        ? (isBengali ? festivalMemoryPairs.find((pair) => pair.id === memoryFact)?.factBn : festivalMemoryPairs.find((pair) => pair.id === memoryFact)?.fact)
+        : (isBengali ? `${memoryMatched.length} / ${festivalMemoryPairs.length} জোড়া মিলেছে। একটি কার্ড খুলে শুরু করুন।` : `${memoryMatched.length} of ${festivalMemoryPairs.length} pairs found. Turn over a card to begin.`)
+
   const gatherQuality = (id: string) => {
     if (!formationStarted) return
     setGatheredQualities((current) => current.includes(id) ? current : [...current, id])
@@ -453,7 +548,7 @@ function App() {
         </a>
         <nav id="site-navigation" className={`desktop-nav ${menuOpen ? 'nav-open' : ''}`} aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}>
           {navItems.map(([label, id], index) => {
-            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'শক্তির আলোকযাত্রা', 'দিয়া খেলা', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'অনুষ্ঠান খোঁজ', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
+            const bengaliLabels = ['কাহিনি', 'তাৎপর্য', 'ঐতিহ্য', 'নবদুর্গা', 'ভারতজুড়ে', 'জ্ঞান কুইজ', 'শক্তির আলোকযাত্রা', 'দিয়া খেলা', 'উৎসব আর্কেড', 'উৎসবের পঞ্জিকা', 'সচেতন উদ্‌যাপন', 'অনুষ্ঠান খোঁজ', 'প্যান্ডেল মানচিত্র', 'পুজোর দিনলিপি', 'কমিউনিটি গ্যালারি']
             return <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{language === 'en' ? label : bengaliLabels[index]}</a>
           })}
         </nav>
@@ -491,7 +586,10 @@ function App() {
             aria-label="AI-generated devotional illustration inspired by Maa Durga"
             style={{ '--parallax-x': `${heroPointer.x * -9}px`, '--parallax-y': `${heroPointer.y * -7}px` } as React.CSSProperties}
           >
-            <img src={publicAsset('durga-ma-hero.webp')} alt="" />
+            <picture>
+              <source media="(max-width: 800px)" srcSet={publicAsset('gallery/durga-story-art.webp')} />
+              <img src={publicAsset('durga-ma-hero.webp')} alt="" fetchPriority="high" />
+            </picture>
           </div>
           <div className="hero-halo" aria-hidden="true"><span /><span /><span /></div>
           <div className="hero-vignette" />
@@ -704,6 +802,44 @@ function App() {
               })}
               <div className="diya-board-center" aria-hidden="true"><span>শুভ</span><b>দুর্গা</b><small>পূজা</small></div>
             </div>
+          </div>
+        </section>
+
+        <section className="section arcade-section" id="utsav-arcade">
+          <Reveal><SectionHeading eyebrow={isBengali ? 'খেলায় শিখুন, ঐতিহ্যে মিলুন' : 'PLAY, DISCOVER & CELEBRATE'} title={isBengali ? 'উৎসব আর্কেড' : 'The Utsav Arcade'} copy={isBengali ? 'উৎসবের পরিচিত চিহ্ন মিলিয়ে দেখুন, অথবা পুজোর রীতি ও সংস্কৃতি নিয়ে ছোট্ট কুইজ খেলুন।' : 'Match familiar festival symbols and uncover their stories, or try a fresh quiz about Durga Puja traditions and culture.'} /></Reveal>
+          <div className="arcade-card">
+            <div className="arcade-toolbar">
+              <div><span className="eyebrow"><Sparkles size={14} /> {isBengali ? 'শেখার নতুন উপায়' : 'A NEW WAY TO LEARN'}</span><h3>{isBengali ? 'কোন খেলাটি খেলবেন?' : 'Choose your little challenge.'}</h3></div>
+              <div className="arcade-mode-switch" role="group" aria-label={isBengali ? 'খেলার ধরন বেছে নিন' : 'Choose a game mode'}>
+                <button type="button" className={arcadeMode === 'memory' ? 'is-active' : ''} aria-pressed={arcadeMode === 'memory'} onClick={() => setArcadeMode('memory')}><Sparkles size={15} /> {isBengali ? 'চিহ্ন মেলান' : 'Memory match'}</button>
+                <button type="button" className={arcadeMode === 'quiz' ? 'is-active' : ''} aria-pressed={arcadeMode === 'quiz'} onClick={() => setArcadeMode('quiz')}><BookOpen size={15} /> {isBengali ? 'সংস্কৃতি কুইজ' : 'Culture quiz'}</button>
+              </div>
+            </div>
+
+            {arcadeMode === 'memory' ? <div className="memory-game">
+              <div className="memory-game-heading"><div><b>{isBengali ? 'উৎসবের চিহ্ন মেলান' : 'Find the festival pairs'}</b><p>{isBengali ? 'একই চিহ্নের দুটি কার্ড খুঁজে বের করুন। প্রতিটি মিলের সঙ্গে একটি নতুন তথ্য পাবেন।' : 'Reveal two cards at a time. Match each pair to discover a little festival fact.'}</p></div><div className="memory-moves"><strong>{memoryMoves}</strong><span>{isBengali ? 'চাল' : 'moves'}</span></div></div>
+              <div className="memory-board" role="group" aria-label={isBengali ? 'উৎসবের চিহ্ন মিলানোর খেলা' : 'Festival symbol memory game'}>
+                {memoryDeck.map((card, index) => {
+                  const isOpen = memoryFlipped.includes(card.id) || memoryMatched.includes(card.pair)
+                  const Icon = card.icon
+                  return <button key={card.id} type="button" className={`memory-tile ${isOpen ? 'is-open' : ''} ${memoryMatched.includes(card.pair) ? 'is-matched' : ''}`} aria-pressed={isOpen} aria-label={isOpen ? `${isBengali ? card.labelBn : card.label}${memoryMatched.includes(card.pair) ? (isBengali ? ' — মিলেছে' : ' — matched') : ''}` : `${isBengali ? 'কার্ড' : 'Card'} ${index + 1}, ${isBengali ? 'খুলতে চাপ দিন' : 'tap to reveal'}`} disabled={memoryMatched.includes(card.pair) || (memoryFlipped.length >= 2 && !isOpen)} onClick={() => flipFestivalMemoryCard(card)}>
+                    {isOpen ? <><Icon size={26} /><small>{isBengali ? card.labelBn : card.label}</small></> : <span aria-hidden="true">✦</span>}
+                  </button>
+                })}
+              </div>
+              <div className="memory-bottom-row">
+                <p className="memory-feedback" role="status" aria-live="polite">{memoryFeedback}</p>
+                <button type="button" className="button button-secondary" onClick={resetFestivalMemory}>{isBengali ? 'নতুন করে খেলুন' : 'Shuffle & restart'} <ArrowRight size={15} /></button>
+              </div>
+            </div> : <div className="culture-quiz">
+              {!cultureQuizFinished ? <>
+                <div className="culture-quiz-top"><span className="eyebrow">{isBengali ? culturalQuiz[cultureQuizIndex].topicBn : culturalQuiz[cultureQuizIndex].topic}</span><b>{cultureQuizIndex + 1}<i> / {culturalQuiz.length}</i></b></div>
+                <div className="culture-quiz-progress"><span style={{ width: `${((cultureQuizIndex + 1) / culturalQuiz.length) * 100}%` }} /></div>
+                <h4 ref={cultureQuizQuestionRef} tabIndex={-1} aria-live="polite">{isBengali ? culturalQuiz[cultureQuizIndex].questionBn : culturalQuiz[cultureQuizIndex].question}</h4>
+                <div className="culture-quiz-options">{(isBengali ? culturalQuiz[cultureQuizIndex].optionsBn : culturalQuiz[cultureQuizIndex].options).map((option, index) => <button key={option} type="button" className={`culture-quiz-option ${cultureQuizSelected !== null && index === culturalQuiz[cultureQuizIndex].answer ? 'is-correct' : ''} ${cultureQuizSelected === index && index !== culturalQuiz[cultureQuizIndex].answer ? 'is-incorrect' : ''}`} disabled={cultureQuizSelected !== null} onClick={() => answerCultureQuiz(index)}><span>{String.fromCharCode(65 + index)}</span>{option}{cultureQuizSelected !== null && index === culturalQuiz[cultureQuizIndex].answer && <Check size={17} />}</button>)}</div>
+                {cultureQuizSelected !== null && <motion.div className="culture-quiz-explanation" initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduceMotion ? 0 : 0.25 }}><p>{isBengali ? culturalQuiz[cultureQuizIndex].explainBn : culturalQuiz[cultureQuizIndex].explain}</p><button className="button button-primary" onClick={nextCultureQuestion}>{cultureQuizIndex === culturalQuiz.length - 1 ? (isBengali ? 'ফলাফল দেখুন' : 'See my score') : (isBengali ? 'পরের প্রশ্ন' : 'Next question')} <ArrowRight size={16} /></button></motion.div>}
+              </> : <div className="culture-quiz-result"><span className="result-spark"><Sparkles size={26} /></span><span className="eyebrow">{isBengali ? 'কুইজ সম্পূর্ণ' : 'CULTURE QUIZ COMPLETE'}</span><h4 ref={cultureQuizResultRef} tabIndex={-1} aria-live="polite">{cultureQuizScore} / {culturalQuiz.length}</h4><p>{cultureQuizScore === culturalQuiz.length ? (isBengali ? 'অসাধারণ! পুজোর সংস্কৃতি সম্পর্কে আপনার জ্ঞান খুব ভালো।' : 'Wonderful! You know your Puja culture beautifully.') : (isBengali ? 'প্রতিটি উত্তরই নতুন কিছু জানার সুযোগ—আবার চেষ্টা করুন।' : 'Every answer is a chance to learn something new. Give it another round.')}</p><button className="button button-primary" onClick={resetCultureQuiz}>{isBengali ? 'আবার কুইজ খেলুন' : 'Play the quiz again'} <ArrowRight size={16} /></button></div>}
+            </div>}
           </div>
         </section>
 
