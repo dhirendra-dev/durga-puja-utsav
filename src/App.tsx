@@ -168,6 +168,12 @@ function App() {
   const [festivalDate, setFestivalDate] = useState('2027-10-08')
   const [audioPlaying, setAudioPlaying] = useState(false)
   const [selectedTrack, setSelectedTrack] = useState(0)
+  const [audioVolume, setAudioVolume] = useState(0.8)
+  const [audioMuted, setAudioMuted] = useState(false)
+  const [audioProgress, setAudioProgress] = useState(0)
+  const [audioDuration, setAudioDuration] = useState(0)
+  const [shuffleAudio, setShuffleAudio] = useState(false)
+  const [repeatTrack, setRepeatTrack] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -252,7 +258,30 @@ function App() {
   }
   const changeTrack = (direction: 1 | -1) => {
     setSelectedTrack((current) => (current + direction + audioTracks.length) % audioTracks.length)
+    setAudioProgress(0)
   }
+  const handleTrackEnd = () => {
+    if (repeatTrack) {
+      const audio = audioRef.current
+      if (audio) { audio.currentTime = 0; audio.play().catch(() => undefined) }
+      return
+    }
+    if (shuffleAudio && audioTracks.length > 1) {
+      setSelectedTrack((current) => {
+        const choices = audioTracks.map((_, index) => index).filter((index) => index !== current)
+        return choices[Math.floor(Math.random() * choices.length)]
+      })
+      return
+    }
+    changeTrack(1)
+  }
+  const formatAudioTime = (seconds: number) => {
+    if (!Number.isFinite(seconds)) return '0:00'
+    return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+  }
+  useEffect(() => {
+    if (audioRef.current) { audioRef.current.volume = audioVolume; audioRef.current.muted = audioMuted }
+  }, [audioVolume, audioMuted])
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -579,10 +608,13 @@ function App() {
 
   return (
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
-      <audio ref={audioRef} src={publicAsset(audioTracks[selectedTrack].file)} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} onEnded={() => changeTrack(1)} />
+      <audio ref={audioRef} src={publicAsset(audioTracks[selectedTrack].file)} preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} onEnded={handleTrackEnd} onTimeUpdate={(e) => setAudioProgress(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)} />
       <div className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`}>
         <div className="audio-dock-main"><Music2 size={17} /><div><b>{language === 'en' ? audioTracks[selectedTrack].title : audioTracks[selectedTrack].titleBn}</b><small>{audioPlaying ? (language === 'en' ? 'Now playing' : 'এখন বাজছে') : (language === 'en' ? 'Devotional playlist' : 'ভক্তিমূলক প্লেলিস্ট')}</small></div><button type="button" className="audio-play" onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional audio' : 'Play devotional audio'}>{audioPlaying ? 'Ⅱ' : '▶'}</button></div>
+        <input className="audio-progress" type="range" min="0" max={audioDuration || 0} step="0.1" value={Math.min(audioProgress, audioDuration || 0)} onChange={(e) => { const time = Number(e.target.value); setAudioProgress(time); if (audioRef.current) audioRef.current.currentTime = time }} aria-label="Seek through current track" />
+        <div className="audio-time"><span>{formatAudioTime(audioProgress)}</span><span>{formatAudioTime(audioDuration)}</span></div>
         <div className="audio-dock-controls"><button type="button" onClick={() => changeTrack(-1)} aria-label="Previous track">‹</button><select value={selectedTrack} onChange={(e) => setSelectedTrack(Number(e.target.value))} aria-label="Choose devotional track">{audioTracks.map((track, index) => <option value={index} key={track.id}>{language === 'en' ? track.title : track.titleBn}</option>)}</select><button type="button" onClick={() => changeTrack(1)} aria-label="Next track">›</button></div>
+        <div className="audio-extra-controls"><button type="button" onClick={() => setAudioMuted((muted) => !muted)} aria-pressed={audioMuted}>{audioMuted ? 'Unmute' : 'Mute'}</button><label title="Volume"><span>Vol</span><input type="range" min="0" max="1" step="0.05" value={audioVolume} onChange={(e) => { setAudioVolume(Number(e.target.value)); setAudioMuted(false) }} aria-label="Volume" /></label><button type="button" className={shuffleAudio ? 'active' : ''} onClick={() => setShuffleAudio((value) => !value)} aria-pressed={shuffleAudio}>Shuffle</button><button type="button" className={repeatTrack ? 'active' : ''} onClick={() => setRepeatTrack((value) => !value)} aria-pressed={repeatTrack}>Repeat</button></div>
       </div>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
