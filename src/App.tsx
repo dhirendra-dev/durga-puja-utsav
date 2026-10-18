@@ -25,6 +25,11 @@ const navItems = [
 ] as const
 
 const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const audioTracks = [
+  { id: 'main', title: 'Dhaak Utsav', titleBn: 'ঢাক উৎসব', file: 'audio/durga-dhak.mp3', note: 'Full festive rhythm' },
+  { id: 'evening', title: 'Evening Dhaak Mix', titleBn: 'সন্ধ্যার ঢাক মিক্স', file: 'audio/dhaak-evening-mix.mp3', note: 'Warm, balanced celebration mix' },
+  { id: 'temple', title: 'Temple Echo', titleBn: 'মন্দিরের প্রতিধ্বনি', file: 'audio/dhaak-temple-echo.mp3', note: 'Slower devotional ambience' },
+] as const
 const tithiSchedule = [
   { name: 'Shashthi', bn: 'ষষ্ঠী', time: '06:18 – 19:42', note: 'Bodhan & welcome of Maa Durga' },
   { name: 'Saptami', bn: 'সপ্তমী', time: '06:19 – 20:11', note: 'Nabapatrika & morning puja' },
@@ -162,6 +167,7 @@ function App() {
   const isBengali = language === 'bn';const [galleryFilter, setGalleryFilter] = useState('all')
   const [festivalDate, setFestivalDate] = useState('2027-10-08')
   const [audioPlaying, setAudioPlaying] = useState(false)
+  const [selectedTrack, setSelectedTrack] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -244,6 +250,16 @@ function App() {
     if (audioPlaying) { audio.pause(); setAudioPlaying(false) }
     else { audio.play().then(() => setAudioPlaying(true)).catch(() => undefined) }
   }
+  const changeTrack = (direction: 1 | -1) => {
+    setSelectedTrack((current) => (current + direction + audioTracks.length) % audioTracks.length)
+  }
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    const shouldResume = audioPlaying
+    audio.load()
+    if (shouldResume) audio.play().catch(() => setAudioPlaying(false))
+  }, [selectedTrack])
 
   useEffect(() => {
     try {
@@ -563,8 +579,11 @@ function App() {
 
   return (
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
-      <audio ref={audioRef} src={publicAsset('audio/durga-dhak.mp3')} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} />
-      <button className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`} onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional dhaak' : 'Play devotional dhaak'}><Music2 size={17} /><span>{audioPlaying ? (language === 'en' ? 'Dhaak playing' : 'ঢাক বাজছে') : (language === 'en' ? 'Play dhaak' : 'ঢাক চালান')}</span><i>{audioPlaying ? 'Ⅱ' : '▶'}</i></button>
+      <audio ref={audioRef} src={publicAsset(audioTracks[selectedTrack].file)} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} onEnded={() => changeTrack(1)} />
+      <div className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`}>
+        <div className="audio-dock-main"><Music2 size={17} /><div><b>{language === 'en' ? audioTracks[selectedTrack].title : audioTracks[selectedTrack].titleBn}</b><small>{audioPlaying ? (language === 'en' ? 'Now playing' : 'এখন বাজছে') : (language === 'en' ? 'Devotional playlist' : 'ভক্তিমূলক প্লেলিস্ট')}</small></div><button type="button" className="audio-play" onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional audio' : 'Play devotional audio'}>{audioPlaying ? 'Ⅱ' : '▶'}</button></div>
+        <div className="audio-dock-controls"><button type="button" onClick={() => changeTrack(-1)} aria-label="Previous track">‹</button><select value={selectedTrack} onChange={(e) => setSelectedTrack(Number(e.target.value))} aria-label="Choose devotional track">{audioTracks.map((track, index) => <option value={index} key={track.id}>{language === 'en' ? track.title : track.titleBn}</option>)}</select><button type="button" onClick={() => changeTrack(1)} aria-label="Next track">›</button></div>
+      </div>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
