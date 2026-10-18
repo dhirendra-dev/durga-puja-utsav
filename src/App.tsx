@@ -19,6 +19,7 @@ const navItems = [
   ['Festival calendar', 'calendar'],
   ['Greeting cards', 'greetings'],
   ['Bhog recipes', 'bhog-recipes'],
+  ['Live Aarti', 'live-aarti'],
   ['Celebrate kindly', 'kindness'],
   ['Events explorer', 'events-explorer'],
   ['Pandal map', 'pandal-map'],
@@ -207,6 +208,11 @@ function App() {
   const [activeBhogRecipe, setActiveBhogRecipe] = useState(0)
   const [bhogServings, setBhogServings] = useState(4)
   const [checkedBhogIngredients, setCheckedBhogIngredients] = useState<string[]>([])
+  const [aartiRunning, setAartiRunning] = useState(false)
+  const [aartiTime, setAartiTime] = useState(180)
+  const [bellCount, setBellCount] = useState(0)
+  const [flowerCount, setFlowerCount] = useState(0)
+  const [aartiPulse, setAartiPulse] = useState<'bell' | 'flower' | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -328,6 +334,15 @@ function App() {
     setDhunuchiScore((score) => score + 10 + Math.min(dhunuchiCombo, 10))
     setDhunuchiCombo((combo) => combo + 1)
   }
+  useEffect(() => {
+    if (!aartiRunning) return
+    const timer = window.setInterval(() => setAartiTime((time) => { if (time <= 1) { setAartiRunning(false); return 0 } return time - 1 }), 1000)
+    return () => window.clearInterval(timer)
+  }, [aartiRunning])
+  const startAarti = () => { setAartiRunning(true); setAartiTime(180); setBellCount(0); setFlowerCount(0) }
+  const ringBell = () => { if (!aartiRunning) return; setBellCount((count) => count + 1); setAartiPulse('bell'); window.setTimeout(() => setAartiPulse(null), 360) }
+  const showerFlowers = () => { if (!aartiRunning) return; setFlowerCount((count) => count + 3); setAartiPulse('flower'); window.setTimeout(() => setAartiPulse(null), 700) }
+  const formatAartiTime = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
   const greetingText = () => `শুভ দুর্গা পূজা!\n${greetingRecipient ? `Dear ${greetingRecipient},\n` : ''}${greetingMessage}${greetingSender ? `\n— ${greetingSender}` : ''}`
   const wrapCanvasText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
     const words = text.split(' '); const lines: string[] = []; let line = ''
@@ -1111,6 +1126,10 @@ function App() {
         <section className="section bhog-section" id="bhog-recipes">
           <Reveal><SectionHeading eyebrow={language === 'en' ? 'OFFERING WITH CARE' : 'যত্নের ভোগ'} title={language === 'en' ? 'A Bhog table for Ashtami & Navami.' : 'অষ্টমী ও নবমীর ভোগের রান্নাঘর।'} copy={language === 'en' ? 'Explore simple, adaptable Bengali-inspired recipes for a festive community meal. Ingredients and customs vary across homes and temples.' : 'উৎসবের সামষ্টিক ভোজের জন্য সহজ, বদলানো যায় এমন বাঙালি অনুপ্রাণিত রান্না দেখুন। বাড়ি ও মন্দির অনুযায়ী উপকরণ ও রীতি বদলাতে পারে।'} /></Reveal>
           <div className="bhog-card"><div className="bhog-tabs">{bhogRecipes.map((recipe, index) => <button type="button" className={activeBhogRecipe === index ? 'active' : ''} onClick={() => { setActiveBhogRecipe(index); setCheckedBhogIngredients([]) }} key={recipe.id}><span>{recipe.day}</span><b>{language === 'en' ? recipe.title : recipe.titleBn}</b></button>)}</div>{(() => { const recipe = bhogRecipes[activeBhogRecipe]; return <div className="bhog-content"><div className="bhog-heading"><span className="bhog-symbol">✦</span><div><span className="eyebrow">{language === 'en' ? `${recipe.day} OFFERING` : `${recipe.dayBn} ভোগ`}</span><h3>{language === 'en' ? recipe.title : recipe.titleBn}</h3><p>{recipe.intro}</p></div></div><div className="bhog-servings"><span>{language === 'en' ? 'Servings' : 'পরিবেশন'}</span><button type="button" onClick={() => setBhogServings((value) => Math.max(1, value - 1))}>−</button><b>{bhogServings}</b><button type="button" onClick={() => setBhogServings((value) => Math.min(20, value + 1))}>+</button></div><div className="bhog-columns"><div><h4>{language === 'en' ? 'Ingredients to gather' : 'উপকরণ সংগ্রহ করুন'}</h4><div className="bhog-ingredients">{recipe.ingredients.map(([name, amount, unit]) => { const key = `${recipe.id}-${name}`; const checked = checkedBhogIngredients.includes(key); return <label className={checked ? 'checked' : ''} key={name}><input type="checkbox" checked={checked} onChange={() => setCheckedBhogIngredients((items) => checked ? items.filter((item) => item !== key) : [...items, key])} /><span>{checked ? '✓' : ''}</span><b>{name}</b><em>{(amount * bhogServings / 4).toFixed(2).replace('.00', '')} {unit}</em></label> })}</div></div><div><h4>{language === 'en' ? 'Method' : 'প্রণালী'}</h4><ol className="bhog-steps">{recipe.steps.map((step, index) => <li key={step}><span>0{index + 1}</span><p>{step}</p></li>)}</ol></div></div><p className="bhog-note">{language === 'en' ? 'Bhog is traditionally prepared with a sattvic spirit. Please adapt ingredients to your family, temple and dietary practices.' : 'ভোগ সাধারণত সাত্ত্বিক ভাবনায় প্রস্তুত করা হয়। নিজের পরিবার, মন্দির ও খাদ্যাভ্যাস অনুযায়ী উপকরণ বদলে নিন।'}</p></div> })()}</div>
+        </section>
+        <section className="section aarti-section" id="live-aarti">
+          <Reveal><SectionHeading eyebrow={language === 'en' ? 'A MOMENT OF DEVOTION' : 'ভক্তির মুহূর্ত'} title={language === 'en' ? 'Join the live Aarti.' : 'লাইভ আরতিতে যোগ দিন।'} copy={language === 'en' ? 'Begin a three-minute digital Aarti. Ring the bell and offer flowers with a mindful tap from wherever you are.' : 'তিন মিনিটের ডিজিটাল আরতি শুরু করুন। যেখানে আছেন, মন দিয়ে ঘণ্টা বাজান ও ফুল অর্পণ করুন।'} /></Reveal>
+          <div className={`aarti-room ${aartiRunning ? 'is-live' : ''}`}><div className={`aarti-sanctum ${aartiPulse ? `pulse-${aartiPulse}` : ''}`}><div className="aarti-halo" /><div className="aarti-deity">ॐ</div><div className="aarti-lamp"><i /><i /><i /></div>{aartiPulse === 'flower' && <div className="flower-shower">{Array.from({ length: 18 }, (_, index) => <span key={index}>✿</span>)}</div>}<p>{aartiRunning ? (language === 'en' ? 'Your offering is received with devotion.' : 'আপনার অর্ঘ্য ভক্তির সঙ্গে গৃহীত হয়েছে।') : (language === 'en' ? 'Light a moment of devotion.' : 'ভক্তির একটি মুহূর্ত জ্বালান।')}</p></div><div className="aarti-controls"><div className="aarti-clock"><span>{language === 'en' ? 'AARTI TIME' : 'আরতির সময়'}</span><strong>{formatAartiTime(aartiTime)}</strong></div><div className="aarti-stats"><div><b>{bellCount}</b><span>{language === 'en' ? 'bells' : 'ঘণ্টা'}</span></div><div><b>{flowerCount}</b><span>{language === 'en' ? 'flowers' : 'ফুল'}</span></div></div><div className="aarti-buttons"><button type="button" className={`aarti-action bell ${aartiPulse === 'bell' ? 'is-pressed' : ''}`} onClick={ringBell} disabled={!aartiRunning}><span> घंटा </span><b>◉</b><small>{language === 'en' ? 'Ring bell' : 'ঘণ্টা বাজান'}</small></button><button type="button" className={`aarti-action flowers ${aartiPulse === 'flower' ? 'is-pressed' : ''}`} onClick={showerFlowers} disabled={!aartiRunning}><span>✿</span><b>✿</b><small>{language === 'en' ? 'Offer flowers' : 'ফুল অর্পণ করুন'}</small></button></div><button type="button" className="button button-primary aarti-start" onClick={startAarti}>{aartiRunning ? (language === 'en' ? 'Restart Aarti' : 'আরতি আবার শুরু করুন') : aartiTime === 0 ? (language === 'en' ? 'Join again' : 'আবার যোগ দিন') : (language === 'en' ? 'Begin Aarti' : 'আরতি শুরু করুন')}</button></div></div><p className="aarti-note">{language === 'en' ? 'This is a quiet digital participation feature, not a replacement for local worship. Please follow your family and community traditions.' : 'এটি একটি শান্ত ডিজিটাল অংশগ্রহণের সুবিধা, স্থানীয় উপাসনার বিকল্প নয়। পরিবার ও সম্প্রদায়ের রীতি মেনে চলুন।'}</p>
         </section>
         <section className="section culture-gallery-section" id="culture-gallery">
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE MANY FACES OF PUJA" : "পুজোর নানা রূপ"} title={language === 'en' ? "A festival made of many details." : "ছোট ছোট মুহূর্তে গড়ে ওঠা উৎসব।"} copy={language === 'en' ? "Explore the sights, sounds and shared moments that give the season its distinctive character." : "আলো, শিল্প, ঢাকের ছন্দ ও একসঙ্গে কাটানো মুহূর্ত—সব মিলিয়েই উৎসবের নিজস্ব রূপ তৈরি হয়।"} /></Reveal>
