@@ -193,6 +193,11 @@ function App() {
   const [greetingMessage, setGreetingMessage] = useState('May Maa Durga bless your home with courage, joy and light.')
   const [greetingTheme, setGreetingTheme] = useState('sunset')
   const [greetingNotice, setGreetingNotice] = useState('')
+  const [dhunuchiRunning, setDhunuchiRunning] = useState(false)
+  const [dhunuchiTime, setDhunuchiTime] = useState(30)
+  const [dhunuchiScore, setDhunuchiScore] = useState(0)
+  const [dhunuchiBest, setDhunuchiBest] = useState(0)
+  const [dhunuchiCombo, setDhunuchiCombo] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -293,6 +298,26 @@ function App() {
       return
     }
     changeTrack(1)
+  }
+  useEffect(() => {
+    if (!dhunuchiRunning) return
+    const timer = window.setInterval(() => {
+      setDhunuchiTime((time) => {
+        if (time <= 1) {
+          setDhunuchiRunning(false)
+          setDhunuchiBest((best) => Math.max(best, dhunuchiScore))
+          return 0
+        }
+        return time - 1
+      })
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [dhunuchiRunning, dhunuchiScore])
+  const startDhunuchi = () => { setDhunuchiScore(0); setDhunuchiCombo(0); setDhunuchiTime(30); setDhunuchiRunning(true) }
+  const tapDhunuchi = () => {
+    if (!dhunuchiRunning) return
+    setDhunuchiScore((score) => score + 10 + Math.min(dhunuchiCombo, 10))
+    setDhunuchiCombo((combo) => combo + 1)
   }
   const greetingText = () => `শুভ দুর্গা পূজা!\n${greetingRecipient ? `Dear ${greetingRecipient},\n` : ''}${greetingMessage}${greetingSender ? `\n— ${greetingSender}` : ''}`
   const wrapCanvasText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
@@ -1059,6 +1084,10 @@ function App() {
             <div className="greeting-editor"><span className="eyebrow"><Sparkles size={14} /> {language === 'en' ? 'CARD STUDIO' : 'কার্ড স্টুডিও'}</span><h3>{language === 'en' ? 'Your words, your light.' : 'আপনার কথা, আপনার আলো।'}</h3><label className="greeting-field"><span>{language === 'en' ? 'Recipient name' : 'প্রাপকের নাম'}</span><input value={greetingRecipient} onChange={(e) => setGreetingRecipient(e.target.value.slice(0, 50))} placeholder={language === 'en' ? 'Dear family and friends' : 'প্রিয় পরিবার ও বন্ধুরা'} /></label><label className="greeting-field"><span>{language === 'en' ? 'Your message' : 'আপনার বার্তা'}</span><textarea rows={4} maxLength={180} value={greetingMessage} onChange={(e) => setGreetingMessage(e.target.value)} /></label><label className="greeting-field"><span>{language === 'en' ? 'From' : 'প্রেরক'}</span><input value={greetingSender} onChange={(e) => setGreetingSender(e.target.value.slice(0, 50))} placeholder={language === 'en' ? 'Your name' : 'আপনার নাম'} /></label><div className="theme-picker"><span>{language === 'en' ? 'Choose a mood' : 'একটি রং বেছে নিন'}</span><div>{greetingThemes.map((theme) => <button type="button" key={theme.id} className={greetingTheme === theme.id ? 'selected' : ''} style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }} onClick={() => setGreetingTheme(theme.id)} aria-label={theme.label} />)}</div></div><div className="greeting-actions"><button type="button" className="button button-primary" onClick={downloadGreeting}><Download size={15} /> {language === 'en' ? 'Download card' : 'কার্ড ডাউনলোড করুন'}</button><button type="button" className="button button-quiet" onClick={shareGreeting}><Send size={15} /> {language === 'en' ? 'Share wish' : 'শুভেচ্ছা শেয়ার করুন'}</button></div>{greetingNotice && <p className="greeting-notice"><Check size={14} /> {greetingNotice}</p>}</div>
             <div className="greeting-preview-wrap"><span className="eyebrow">{language === 'en' ? 'LIVE PREVIEW' : 'সঙ্গে সঙ্গে পূর্বরূপ'}</span><div className={`greeting-card-preview theme-${greetingTheme}`}><span className="preview-om">ॐ</span><strong>SHUBHO DURGA PUJA</strong>{greetingRecipient && <b>Dear {greetingRecipient}</b>}<p>{greetingMessage}</p>{greetingSender && <em>— {greetingSender}</em>}<small>Courage • Compassion • Light</small></div><p className="greeting-preview-note">{language === 'en' ? 'The downloaded card is rendered as a high-resolution PNG.' : 'ডাউনলোড করা কার্ডটি উচ্চ-রেজোলিউশনের PNG হিসেবে তৈরি হবে।'}</p></div>
           </div>
+        </section>
+        <section className="section dhunuchi-section" id="dhunuchi-naach">
+          <Reveal><SectionHeading eyebrow={language === 'en' ? 'RHYTHM OF THE FESTIVAL' : 'উৎসবের ছন্দ'} title={language === 'en' ? 'Dhunuchi Naach, one tap at a time.' : 'একটি ট্যাপে ধুনুচি নাচ।'} copy={language === 'en' ? 'Keep the incense flame dancing for 30 seconds. Tap the bowl in rhythm to build your score and combo.' : '৩০ সেকেন্ড ধরে ধুনুচির ধুনো জ্বালিয়ে রাখুন। ছন্দে ছন্দে ট্যাপ করে স্কোর ও কম্বো বাড়ান।'} /></Reveal>
+          <div className="dhunuchi-game"><div className="dhunuchi-stage" aria-live="polite"><div className="dhunuchi-smoke smoke-one" /><div className="dhunuchi-smoke smoke-two" /><div className={`dhunuchi-flame ${dhunuchiRunning ? 'is-dancing' : ''}`}><span>✦</span><span>✧</span><span>✦</span></div><button type="button" className={`dhunuchi-bowl ${dhunuchiRunning ? 'is-active' : ''}`} onClick={tapDhunuchi} aria-label={dhunuchiRunning ? 'Tap the dhunuchi to dance' : 'Start the Dhunuchi Naach game'}><span>ধুনুচি</span><small>{dhunuchiRunning ? 'TAP' : 'NAACH'}</small></button><div className="dhunuchi-sparks"><i /><i /><i /><i /><i /></div></div><div className="dhunuchi-scoreboard"><div><span>{language === 'en' ? 'TIME' : 'সময়'}</span><strong>{String(dhunuchiTime).padStart(2, '0')}s</strong></div><div><span>{language === 'en' ? 'SCORE' : 'স্কোর'}</span><strong>{dhunuchiScore}</strong></div><div><span>{language === 'en' ? 'COMBO' : 'কম্বো'}</span><strong>x{dhunuchiCombo}</strong></div><div><span>{language === 'en' ? 'BEST' : 'সেরা'}</span><strong>{dhunuchiBest}</strong></div></div><div className="dhunuchi-actions"><button type="button" className="button button-primary" onClick={startDhunuchi}>{dhunuchiRunning ? (language === 'en' ? 'Restart dance' : 'আবার নাচুন') : dhunuchiTime === 0 ? (language === 'en' ? 'Dance again' : 'আবার নাচুন') : (language === 'en' ? 'Start Dhunuchi Naach' : 'ধুনুচি নাচ শুরু করুন')}</button>{!dhunuchiRunning && dhunuchiTime === 0 && <p>{language === 'en' ? `Your final score is ${dhunuchiScore}. Keep the rhythm going!` : `আপনার শেষ স্কোর ${dhunuchiScore}। ছন্দ ধরে রাখুন!`}</p>}</div><small className="dhunuchi-note">{language === 'en' ? 'A playful digital tribute inspired by the festive dhunuchi dance. Please follow local safety guidance around incense and fire.' : 'ধুনুচি নাচের অনুপ্রেরণায় তৈরি একটি আনন্দময় ডিজিটাল খেলা। ধুনো ও আগুনের ক্ষেত্রে স্থানীয় নিরাপত্তা নির্দেশনা মেনে চলুন।'}</small></div>
         </section>
         <section className="section culture-gallery-section" id="culture-gallery">
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE MANY FACES OF PUJA" : "পুজোর নানা রূপ"} title={language === 'en' ? "A festival made of many details." : "ছোট ছোট মুহূর্তে গড়ে ওঠা উৎসব।"} copy={language === 'en' ? "Explore the sights, sounds and shared moments that give the season its distinctive character." : "আলো, শিল্প, ঢাকের ছন্দ ও একসঙ্গে কাটানো মুহূর্ত—সব মিলিয়েই উৎসবের নিজস্ব রূপ তৈরি হয়।"} /></Reveal>
