@@ -789,3 +789,6 @@ input:focus-visible {
 
 /* Expanded festival greeting palettes */
 .theme-sindoor{background:linear-gradient(145deg,#4a101b,#c44836)}.theme-shiuli{background:linear-gradient(145deg,#12313a,#567f78)}.theme-alpana{background:linear-gradient(145deg,#5c3827,#bd8b58)}.theme-neel{background:linear-gradient(145deg,#0d1b3a,#354f93)}.theme-kumkum{background:linear-gradient(145deg,#3c142d,#8f315a)}.theme-selected-label{display:block;margin-top:6px;color:var(--muted);font-size:9px;letter-spacing:.5px}.theme-picker button{transition:transform .2s,box-shadow .2s}.theme-picker button:hover{transform:scale(1.1)}
+
+/* Direct social sharing actions */
+.social-share{border:0;border-radius:7px;padding:0 12px;min-height:40px;font:600 10px "DM Sans",sans-serif;color:#fff;cursor:pointer;transition:transform .2s,filter .2s}.social-share:hover{transform:translateY(-2px);filter:brightness(1.1)}.whatsapp-share{background:#1fbd63}.facebook-share{background:#1877f2}.light-mode .social-share{color:#fff}@media(max-width:520px){.social-share{flex:1;padding:0 8px}}
