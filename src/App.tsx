@@ -30,6 +30,12 @@ const audioTracks = [
   { id: 'evening', title: 'Evening Dhaak Mix', titleBn: 'সন্ধ্যার ঢাক মিক্স', file: 'audio/dhaak-evening-mix.mp3', note: 'Warm, balanced celebration mix' },
   { id: 'temple', title: 'Temple Echo', titleBn: 'মন্দিরের প্রতিধ্বনি', file: 'audio/dhaak-temple-echo.mp3', note: 'Slower devotional ambience' },
 ] as const
+const pushpanjaliLines = [
+  { sanskrit: 'ॐ जयन्ती मङ्गला काली भद्रकाली कपालिनी', transliteration: 'Om Jayanti Mangala Kali Bhadrakali Kapalini', bengali: 'ওঁ জয়ন্তী মঙ্গলা কালী ভদ্রকালী কপালিনী', meaning: 'Salutations to the victorious, auspicious Goddess in her many forms.' },
+  { sanskrit: 'दुर्गा क्षमा शिवा धात्री स्वाहा स्वधा नमोऽस्तु ते', transliteration: 'Durga Kshama Shiva Dhatri Svaha Swadha Namostute', bengali: 'দুর্গা ক্ষমা শিবা ধাত্রী স্বাহা স্বধা নমোস্তুতে', meaning: 'To Durga, compassion, auspiciousness and the sustaining Mother, I bow.' },
+  { sanskrit: 'ॐ सर्वमङ्गलमाङ्गल्ये शिवे सर्वार्थसाधिके', transliteration: 'Om Sarva Mangala Mangalye Shive Sarvartha Sadhike', bengali: 'ওঁ সর্বমঙ্গলমাঙ্গল্যে শিবে সর্বার্থসাধিকে', meaning: 'O source of all auspiciousness, bringer of well-being and fulfilment.' },
+  { sanskrit: 'शरण्ये त्र्यम्बके गौरि नारायणि नमोऽस्तु ते', transliteration: 'Sharanye Tryambake Gauri Narayani Namostute', bengali: 'শরণ্যে ত্র্যম্বকে গৌরি নারায়ণী নমোস্তুতে', meaning: 'O refuge, three-eyed Gauri, Narayani — I offer my respectful salutations.' },
+] as const
 const tithiSchedule = [
   { name: 'Shashthi', bn: 'ষষ্ঠী', time: '06:18 – 19:42', note: 'Bodhan & welcome of Maa Durga' },
   { name: 'Saptami', bn: 'সপ্তমী', time: '06:19 – 20:11', note: 'Nabapatrika & morning puja' },
@@ -174,6 +180,8 @@ function App() {
   const [audioDuration, setAudioDuration] = useState(0)
   const [shuffleAudio, setShuffleAudio] = useState(false)
   const [repeatTrack, setRepeatTrack] = useState(false)
+  const [activeMantraLine, setActiveMantraLine] = useState<number | null>(null)
+  const [mantraReading, setMantraReading] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
@@ -275,6 +283,34 @@ function App() {
     }
     changeTrack(1)
   }
+  const speakMantraLine = (index: number) => {
+    if (!('speechSynthesis' in window)) return
+    window.speechSynthesis.cancel()
+    const line = pushpanjaliLines[index]
+    const utterance = new SpeechSynthesisUtterance(line.transliteration)
+    utterance.lang = 'en-IN'
+    utterance.rate = 0.78
+    utterance.pitch = 1
+    utterance.onend = () => setActiveMantraLine(null)
+    setActiveMantraLine(index)
+    window.speechSynthesis.speak(utterance)
+  }
+  const toggleMantraReading = () => {
+    if (mantraReading) {
+      window.speechSynthesis.cancel()
+      setMantraReading(false)
+      setActiveMantraLine(null)
+      return
+    }
+    setMantraReading(true)
+    speakMantraLine(0)
+  }
+  useEffect(() => {
+    if (!mantraReading || activeMantraLine === null) return
+    if (activeMantraLine >= pushpanjaliLines.length - 1) { setMantraReading(false); return }
+    const timer = window.setTimeout(() => speakMantraLine(activeMantraLine + 1), 2200)
+    return () => window.clearTimeout(timer)
+  }, [activeMantraLine, mantraReading])
   const formatAudioTime = (seconds: number) => {
     if (!Number.isFinite(seconds)) return '0:00'
     return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
@@ -973,6 +1009,15 @@ function App() {
           </div>
         </section>
 
+        <section className="section pushpanjali-section" id="pushpanjali">
+          <Reveal><SectionHeading eyebrow={language === 'en' ? 'OFFERING WITH DEVOTION' : 'ভক্তির অর্ঘ্য'} title={language === 'en' ? 'A gentle Pushpanjali guide.' : 'সহজ পুষ্পাঞ্জলি নির্দেশিকা।'} copy={language === 'en' ? 'Read along with a commonly recited Durga mantra. Traditions and pronunciation may vary by family, region and priest.' : 'দুর্গাপুজোয় প্রচলিত একটি মন্ত্রের সঙ্গে পড়ুন। পরিবার, অঞ্চল ও পুরোহিত অনুযায়ী রীতি ও উচ্চারণ ভিন্ন হতে পারে।'} /></Reveal>
+          <div className="pushpanjali-card">
+            <div className="pushpanjali-intro"><span className="mantra-mark">ॐ</span><div><span className="eyebrow"><BookHeart size={14} /> {language === 'en' ? 'READ • LISTEN • OFFER' : 'পড়ুন • শুনুন • অর্ঘ্য দিন'}</span><h3>{language === 'en' ? 'May the flowers carry your prayer.' : 'ফুলে ফুটুক আপনার প্রার্থনা।'}</h3><p>{language === 'en' ? 'Tap the speaker beside any line for a slow pronunciation guide, or listen through the complete reading.' : 'যে কোনও পঙ্‌ক্তির পাশের বোতামে চাপ দিয়ে ধীর উচ্চারণ শুনুন, অথবা সম্পূর্ণ পাঠ শুনুন।'}</p></div></div>
+            <div className="mantra-actions"><button className="button button-primary" type="button" onClick={toggleMantraReading}><Music2 size={15} /> {mantraReading ? (language === 'en' ? 'Stop reading' : 'পাঠ থামান') : (language === 'en' ? 'Play full pronunciation' : 'সম্পূর্ণ উচ্চারণ শুনুন')}</button><span className="mantra-support-note">{('speechSynthesis' in window) ? (language === 'en' ? 'Uses your device voice' : 'আপনার ডিভাইসের কণ্ঠ ব্যবহার করে') : (language === 'en' ? 'Audio voice is not available in this browser' : 'এই ব্রাউজারে অডিও কণ্ঠ নেই')}</span></div>
+            <div className="mantra-lines">{pushpanjaliLines.map((line, index) => <article className={`mantra-line ${activeMantraLine === index ? 'is-speaking' : ''}`} key={line.transliteration}><div className="mantra-line-number">0{index + 1}</div><div className="mantra-line-copy"><b>{line.sanskrit}</b><span>{line.transliteration}</span><em>{line.bengali}</em><small>{line.meaning}</small></div><button type="button" className="mantra-speak" onClick={() => speakMantraLine(index)} aria-label={`Hear pronunciation for line ${index + 1}`}><Music2 size={16} /></button></article>)}</div>
+            <p className="mantra-footnote">{language === 'en' ? 'Pronunciation is a learning aid, not a substitute for guidance from your family or priest. Offer flowers respectfully according to your tradition.' : 'উচ্চারণের এই সহায়িকা শেখার জন্য; পরিবারের রীতি বা পুরোহিতের নির্দেশের বিকল্প নয়। নিজের ঐতিহ্য অনুযায়ী শ্রদ্ধার সঙ্গে ফুল অর্পণ করুন।'}</p>
+          </div>
+        </section>
         <section className="section culture-gallery-section" id="culture-gallery">
           <Reveal><SectionHeading eyebrow={language === 'en' ? "THE MANY FACES OF PUJA" : "পুজোর নানা রূপ"} title={language === 'en' ? "A festival made of many details." : "ছোট ছোট মুহূর্তে গড়ে ওঠা উৎসব।"} copy={language === 'en' ? "Explore the sights, sounds and shared moments that give the season its distinctive character." : "আলো, শিল্প, ঢাকের ছন্দ ও একসঙ্গে কাটানো মুহূর্ত—সব মিলিয়েই উৎসবের নিজস্ব রূপ তৈরি হয়।"} /></Reveal>
           <div className="gallery-filters" role="group" aria-label="Filter cultural gallery">
