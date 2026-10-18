@@ -25,6 +25,13 @@ const navItems = [
 ] as const
 
 const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const tithiSchedule = [
+  { name: 'Shashthi', bn: 'ষষ্ঠী', time: '06:18 – 19:42', note: 'Bodhan & welcome of Maa Durga' },
+  { name: 'Saptami', bn: 'সপ্তমী', time: '06:19 – 20:11', note: 'Nabapatrika & morning puja' },
+  { name: 'Ashtami', bn: 'অষ্টমী', time: '06:20 – 20:39', note: 'Pushpanjali & Kumari Puja' },
+  { name: 'Navami', bn: 'নবমী', time: '06:21 – 21:06', note: 'Navami puja & dhunuchi dance' },
+  { name: 'Dashami', bn: 'দশমী', time: '06:22 – 21:31', note: 'Sindoor khela & farewell' },
+]
 
 const forms = [
   ['Shailaputri', 'Grounded strength and new beginnings', '🌺'],
@@ -154,6 +161,8 @@ function App() {
   
   const isBengali = language === 'bn';const [galleryFilter, setGalleryFilter] = useState('all')
   const [festivalDate, setFestivalDate] = useState('2027-10-08')
+  const [audioPlaying, setAudioPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement>(null)
   const [plannerChecked, setPlannerChecked] = useState<string[]>([])
   const [itineraryItems, setItineraryItems] = useState([
     { id: 'visit', time: '16:00', title: 'Visit a pandal', note: 'Explore the artwork and follow visitor guidance.', done: false },
@@ -220,6 +229,21 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = language
   }, [language])
+  useEffect(() => {
+    const startAudioOnInteraction = () => {
+      const audio = audioRef.current
+      if (!audio || audioPlaying) return
+      audio.play().then(() => setAudioPlaying(true)).catch(() => undefined)
+    }
+    window.addEventListener('pointerdown', startAudioOnInteraction, { once: true })
+    return () => window.removeEventListener('pointerdown', startAudioOnInteraction)
+  }, [audioPlaying])
+  const toggleAudio = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audioPlaying) { audio.pause(); setAudioPlaying(false) }
+    else { audio.play().then(() => setAudioPlaying(true)).catch(() => undefined) }
+  }
 
   useEffect(() => {
     try {
@@ -539,6 +563,11 @@ function App() {
 
   return (
     <div className={`site-shell ${lightMode ? 'light-mode' : ''}`} lang={isBengali ? 'bn' : 'en'}>
+      <audio ref={audioRef} src={publicAsset('audio/durga-dhak.mp3')} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} />
+      <button className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`} onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional dhaak' : 'Play devotional dhaak'}><Music2 size={17} /><span>{audioPlaying ? (language === 'en' ? 'Dhaak playing' : 'ঢাক বাজছে') : (language === 'en' ? 'Play dhaak' : 'ঢাক চালান')}</span><i>{audioPlaying ? 'Ⅱ' : '▶'}</i></button>
+      <audio ref={audioRef} src={publicAsset('audio/durga-dhak.mp3')} loop preload="metadata" onPlay={() => setAudioPlaying(true)} onPause={() => setAudioPlaying(false)} />
+      <button className={`audio-dock ${audioPlaying ? 'is-playing' : ''}`} onClick={toggleAudio} aria-label={audioPlaying ? 'Pause devotional dhaak' : 'Play devotional dhaak'}><Music2 size={17} /><span>{audioPlaying ? (language === 'en' ? 'Dhaak playing' : 'ঢাক বাজছে') : (language === 'en' ? 'Play dhaak' : 'ঢাক চালান')}</span><i>{audioPlaying ? 'Ⅱ' : '▶'}</i></button>
+      <header
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
@@ -886,6 +915,11 @@ function App() {
                   })()}
                 </div>
                 <small className="calendar-caveat">{language === 'en' ? 'Please verify official festival dates with a trusted local Panchang or organiser.' : 'উৎসবের নির্ভুল তারিখ স্থানীয় পঞ্জিকা বা আয়োজকের কাছ থেকে যাচাই করুন।'}</small>
+                <div className="tithi-panel">
+                  <div className="tithi-heading"><span className="eyebrow"><Moon size={13} /> {language === 'en' ? 'DAILY AUSPICIOUS TIMINGS' : 'দৈনিক শুভ সময়'}</span><small>{language === 'en' ? 'Indicative local timings' : 'স্থানীয় আনুমানিক সময়'}</small></div>
+                  <div className="tithi-list">{tithiSchedule.map((tithi, index) => <div className={`tithi-row ${index === 0 ? 'active' : ''}`} key={tithi.name}><span className="tithi-day">0{index + 1}</span><div><b>{language === 'en' ? tithi.name : tithi.bn}</b><small>{tithi.note}</small></div><time>{tithi.time}</time></div>)}</div>
+                  <p className="tithi-note">{language === 'en' ? 'Timings vary by city and Panchang. Confirm locally before observing rituals.' : 'শহর ও পঞ্জিকা অনুযায়ী সময় বদলাতে পারে। আচার পালনের আগে স্থানীয়ভাবে নিশ্চিত করুন।'}</p>
+                </div>
               </div>
             </div>
           </div>
